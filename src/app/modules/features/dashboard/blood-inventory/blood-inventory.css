@@ -1,0 +1,13 @@
+    th{
+      background-color: transparent !important;
+      color: #6a7282 !important;
+      /* font-size: 18px; */
+      text-align: center !important;
+      border: none;
+    }
+    td{
+      background-color: transparent !important;
+      border-color: #e5e7eb !important;
+      text-align: center !important;
+      color: var(--ParagraphColor);
+    }

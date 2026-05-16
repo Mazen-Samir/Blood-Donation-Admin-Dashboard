@@ -1,0 +1,38 @@
+.layaut{
+    height: -webkit-fill-available;
+    /* background-color: var(--backgroundColor); */
+}
+.display-area{
+    position: relative;
+    padding: 0;
+    width: calc(100% - 78px);
+    left: 78px;
+    top: 63px;
+    transition: 250ms all ease-in-out;
+}
+.display-area-shrink{
+    width: calc(100% - 16.66666667%) !important;
+    left: 16.66666667% !important;
+
+}
+.side-nav{
+    position: fixed;
+    width: 78px;
+    height: 100vh;
+    padding: 0;
+    transition: 250ms all ease-in-out;
+
+}
+.nav-bar{
+    position: fixed;
+    width: calc(100% - 78px);
+    left: 78px;
+    transition: 250ms all ease-in-out;
+}
+.side-nav:hover{
+    width: 16.66666667%;
+    z-index: 5;
+}
+.app-side-nav-open{
+    width: 16.66666667%;
+}

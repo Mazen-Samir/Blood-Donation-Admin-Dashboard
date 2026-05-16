@@ -1,0 +1,56 @@
+<section class="p-5 bg-gray-100">
+    <div class="flex flex-col items-center justify-center my-5 gap-5">
+        <!-- HEADER -->
+        <div class="flex flex-col gap-2 items-center">
+            <h1 class="text-black text-2xl font-bold">Scan Donor QR Code</h1>
+            <p class="text-gray-600">Scan donor's QR code to process donation</p>
+        </div>
+        <!-- SCAN AREA -->
+        <div class="bg-white rounded-xl py-20 flex gap-1.5 items-center flex-col p-4 shadow-lg border-2 border-gray-300 w-1/2">
+            <!-- Loading -->
+             @if (isLoading) {
+                 <div class="flex gap-1 items-center">
+                     <p class="text-gray-500 animate-pulse">Opening camera...</p>
+                     <span class="loader"></span>
+                 </div>
+             }
+
+            <!-- Error -->
+             @if (hasError) {
+                 <div class="text-center text-red-500">
+                     {{ errorMessage }}
+                 </div>
+
+             }
+
+            <!-- SCANNER -->
+            <div class="w-80 h-60 border-dashed border-red-600 border-2 rounded-lg overflow-hidden my-8">
+                @if (isLoading) {
+                    <img
+                        src="assets/images/camera.png" 
+                        alt="camera-img"
+                        class="object-cover w-full h-60"
+                    >
+
+                }
+                <!-- <zxing-scanner
+                    [start]="true"
+                    [formats]="['QR_CODE']"
+                    (scanSuccess)="onScanSuccess($event)"
+                    (scanError)="onScanError($event)"
+                    (scanFailure)="onScanFailure($event)"
+                ></zxing-scanner> -->
+
+                <zxing-scanner
+                    
+                    (camerasFound)="onCamerasFound()"
+                    (scanSuccess)="onScanSuccess($event)"
+                    (scanError)="onScanError($event)"
+                    class="w-full"
+                ></zxing-scanner>
+            </div>
+            <h1 class="text-lg font-medium text-black">Ready to Scan</h1>
+            <p class="text-gray-600 text-sm">Position the donor's QR code within the camera frame</p>
+        </div>
+    </div>
+</section>

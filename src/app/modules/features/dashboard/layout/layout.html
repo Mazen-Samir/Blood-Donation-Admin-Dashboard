@@ -1,0 +1,17 @@
+<div class="row layaut m-0 flex flex-col">
+
+    <main class="row m-0 p-0 layaut">
+        <div class="col-2 side-nav" [ngClass]="{'app-side-nav-open':sideNavStatus}">
+            <app-side-bar (sindeNavToggled)="sideNavStatus = $event" />
+        </div>
+        <div class="col-10 nav-bar z-10" [ngClass]="{'display-area-shrink': sideNavStatus}">
+            <app-nav-bar />
+        </div>
+        <div class="col-10 display-area" [ngClass]="{'display-area-shrink': sideNavStatus}">
+            <div>
+                <router-outlet />
+            </div>
+        </div>
+    </main>
+
+</div>
