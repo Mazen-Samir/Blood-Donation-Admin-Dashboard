@@ -7,8 +7,16 @@ export interface LoginRequest {
 
 export interface LoginResponse {
   accessToken: string;
-  // The API returns a JWT — all claims are decoded from it
+  refreshToken: string;
+  expiresIn?: number;
+  user: {
+    id: string;
+    email: string;
+    fullName: string;
+    role: string;
+  };
 }
+// The API returns a JWT — all claims are decoded from it
 
 // ─── Pagination ───────────────────────────────────────────────────────────────
 
@@ -23,15 +31,16 @@ export interface DonationsStatistics {
 }
 
 export interface PaginatedResponse<T> {
-  statistics: DonationsStatistics;  // ✅ new
-  donations: {                       // ✅ nested object, not root level
+  statistics: DonationsStatistics; // ✅ new
+  donations: {
+    // ✅ nested object, not root level
     currentPage: number;
     pageSize: number;
     totalCount: number;
     totalPages: number;
     hasPrevious: boolean;
     hasNext: boolean;
-    data: T[];                       // ✅ actual items array
+    data: T[]; // ✅ actual items array
   };
 }
 
@@ -115,12 +124,10 @@ export interface Donation {
   hospitalName?: string;
 }
 
-
 export interface DonationsStatistics {
   totalDonations: number;
   totalQuantity: number;
 }
-
 
 // ─── Inventory ────────────────────────────────────────────────────────────────
 

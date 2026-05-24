@@ -15,11 +15,11 @@
                         <i class="fa-regular fa-user"></i>
                     </div>
                     <div>
-                        <h2 class="text-gray-800 font-medium">Dr. Mazen</h2>
+                        <h2 class="text-gray-800 font-medium">{{ getFullName() }}</h2>
                     </div>
                 </div>
             </div>
-            <div class="text-gray-600 text-xl cursor-pointer p-1 rounded-lg transition duration-300 hover:bg-gray-100">
+            <div (click)="logout()" class="text-gray-600 text-xl cursor-pointer p-1 rounded-lg transition duration-300 hover:bg-gray-100">
                 <i class="fa-solid fa-arrow-right-from-bracket"></i>
             </div>
         </div>

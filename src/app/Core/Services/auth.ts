@@ -8,6 +8,8 @@ import { LoginRequest, LoginResponse } from '../interface/api-models';
 @Injectable({ providedIn: 'root' })
 export class AuthService {
   private readonly TOKEN_KEY = 'auth_token';
+  private readonly USER_KEY = 'auth_user';
+
   private readonly BASE_URL = environment.baseUrl;
 
   private http = inject(HttpClient);
@@ -16,16 +18,26 @@ export class AuthService {
   // ─── Login ────────────────────────────────────────────────────────────────
 
   login(credentials: LoginRequest): Observable<LoginResponse> {
-    return this.http
-      .post<LoginResponse>(`${this.BASE_URL}/api/auth/login`, credentials)
-      .pipe(
-        tap((res) => {
-          if (res?.accessToken) {
-            this.storeToken(res.accessToken);
-          }
-        })
-      );
+    return this.http.post<LoginResponse>(`${this.BASE_URL}/api/auth/login`, credentials).pipe(
+      tap((res) => {
+        if (res?.accessToken) {
+          this.storeToken(res.accessToken);
+          localStorage.setItem(this.USER_KEY, JSON.stringify(res.user));
+        }
+      }),
+    );
   }
+
+  getUser() {
+    const raw = localStorage.getItem(this.USER_KEY);
+    return raw ? (JSON.parse(raw) as LoginResponse['user']) : null;
+  }
+
+  getFullName(): string | null {
+    return this.getUser()?.fullName ?? null;
+  }
+
+  
 
   // ─── Token Management ─────────────────────────────────────────────────────
 
@@ -83,8 +95,7 @@ export class AuthService {
     if (!payload) return null;
 
     // ASP.NET Core emits role under this claim URI
-    const roleClaimKey =
-      'http://schemas.microsoft.com/ws/2008/06/identity/claims/role';
+    const roleClaimKey = 'http://schemas.microsoft.com/ws/2008/06/identity/claims/role';
     return payload[roleClaimKey] ?? payload['role'] ?? null;
   }
 
@@ -102,21 +113,24 @@ export class AuthService {
     const payload = this.decodeToken(token);
     if (!payload) return null;
 
-    const subClaim =
-      'http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier';
+    const subClaim = 'http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier';
     return payload[subClaim] ?? payload['sub'] ?? null;
   }
 
-  getFullName(): string | null {
-    const token = this.getToken();
-    if (!token) return null;
-    const payload = this.decodeToken(token);
-    if (!payload) return null;
+  // ─── User Info (Optional) ───────────────────────────────────────────────
 
-    const nameClaim =
-      'http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name';
-    return payload[nameClaim] ?? payload['name'] ?? null;
-  }
+
+  
+  // getFullName(): string | null {
+  //   const token = this.getToken();
+  //   if (!token) return null;
+  //   const payload = this.decodeToken(token);
+  //   if (!payload) return null;
+
+  //   const nameClaim =
+  //     'http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name';
+  //   return payload[nameClaim] ?? payload['name'] ?? null;
+  // }
 
   // ─── Logout ───────────────────────────────────────────────────────────────
 

@@ -37,7 +37,7 @@ export class Login {
 
   passwordVisibility = false;
   isLoading = false;
-
+  userName = 'User'; // This should ideally come from the AuthService or a UserService after decoding the JWT token
   loginForm = this.formBuilder.group({
     userName: ['', [Validators.required, Validators.email]],
     password: ['', Validators.required],
@@ -59,15 +59,15 @@ export class Login {
     this.authService.login(credentials).subscribe({
       next: () => {
         this.isLoading = false;
-        
         this.messageService.add({
           severity: 'success',
           summary: 'Welcome',
           detail: 'Logged in successfully',
           life: 2000,
         });
-
         this.router.navigate(['/dashboard/home']);
+        this.userName = this.authService.getFullName() || 'User'; // Update the userName after successful login
+        console.log('Login successful, navigating to dashboard...', this.userName);
       },
       error: (err) => {
         this.isLoading = false;
