@@ -1,14 +1,14 @@
 <section class="p-5 bg-[#f4f1ed] flex flex-col items-center">
 
   <!-- HEADER -->
-  <div class="w-full max-w-[500px] mt-6 mb-6 text-center">
+  <div class="w-full max-w-[820px] mt-6 mb-6 text-center">
     <h1 class="page-title">QR scanner</h1>
     <p class="text-xs text-gray-400 mt-1">Scan donor or recipient QR codes to process donations</p>
   </div>
 
   <!-- TOGGLE -->
   <div class="flex bg-white border border-[#ede8e2] rounded-xl p-1 gap-1
-              w-full max-w-[500px] mb-5">
+              w-full max-w-[820px] mb-5">
     <button
       (click)="setMode('donor')"
       [class]="mode === 'donor'
@@ -28,7 +28,7 @@
   </div>
 
   <!-- CARD -->
-  <div class="bg-white rounded-[16px] border border-[#ede8e2] w-full max-w-[500px]
+  <div class="bg-white rounded-[16px] border border-[#ede8e2] w-full max-w-[820px]
               overflow-hidden hover:shadow-[0_8px_28px_rgba(0,0,0,0.07)] transition-shadow duration-200">
 
     <!-- Card header -->
@@ -51,80 +51,135 @@
            [style.color]="mode === 'donor' ? '#791F1F' : '#0C447C'">
         <span class="w-1.5 h-1.5 rounded-full animate-pulse"
               [style.background]="mode === 'donor' ? '#A32D2D' : '#185FA5'"></span>
-        Ready
+        {{ processing ? 'Processing' : 'Ready' }}
       </div>
     </div>
 
-    <!-- Card body -->
-    <div class="p-5">
+    <!-- Card body — two columns on md+, stacked on mobile -->
+    <div class="p-5 flex flex-col md:flex-row gap-6">
 
-      <!-- QR input -->
-      <p class="text-[11px] font-medium text-gray-400 uppercase tracking-wider mb-2">QR code</p>
-      <div class="flex items-center border-[1.5px] rounded-[10px] px-3.5 transition-all duration-200"
-           [style.background]="mode === 'donor' ? '#fdf9f7' : '#f5f9ff'"
-           [ngClass]="mode === 'donor'
-             ? 'border-[#ede8e2] focus-within:border-[#A32D2D]'
-             : 'border-[#ede8e2] focus-within:border-[#185FA5]'">
-        <i [class]="mode === 'donor' ? 'fa-solid fa-qrcode' : 'fa-solid fa-scan'"
-           class="text-gray-300 text-base flex-shrink-0"></i>
-        <input
-          #qrInput
-          type="text"
-          [(ngModel)]="qrCode"
-          (keyup.enter)="onSubmit()"
-          [placeholder]="mode === 'donor' ? 'Scan or type QR code here...' : 'Scan or type recipient QR code...'"
-          class="w-full py-3 px-2.5 text-sm text-gray-900 bg-transparent outline-none placeholder-gray-300"
-        >
-      </div>
-      <p class="text-xs text-gray-400 mt-2 flex items-center gap-1.5">
-        <i class="fa-solid fa-circle-info text-xs"></i>
-        Place cursor here then scan with the hardware scanner
-      </p>
+      <!-- LEFT COLUMN: camera -->
+      <div class="md:w-1/2 flex flex-col">
+        <p class="text-[11px] font-medium text-[#888780] uppercase tracking-wider mb-2">Camera</p>
+        <div class="rounded-[10px] overflow-hidden mb-3 bg-black/5 aspect-square flex items-center justify-center">
+          @if (hasCamera) {
+            <zxing-scanner
+              class="w-full h-full object-cover"
+              [enable]="scannerEnabled"
+              [autostart]="true"
+              [formats]="formats"
+              [device]="selectedDevice"
+              (camerasFound)="onCamerasFound($event)"
+              (camerasNotFound)="onCamerasNotFound()"
+              (scanSuccess)="onScanSuccess($event)">
+            </zxing-scanner>
+          } @else {
+            <p class="text-xs text-gray-400 p-6 text-center">
+              <i class="fa-solid fa-video-slash mr-1"></i>
+              No camera detected — use the manual field.
+            </p>
+          }
+        </div>
 
-      <hr class="border-[#f0ebe5] my-4">
-
-      <!-- Last scan info -->
-      <div class="flex items-center justify-between py-2.5 border-b border-[#f9f7f5]">
-        <span class="text-xs text-gray-400 flex items-center gap-1.5">
-          <i class="fa-solid fa-user text-xs"></i> Last scanned
-        </span>
-        <span class="text-xs font-medium text-gray-800">{{ lastScanned }}</span>
-      </div>
-
-      <div class="flex items-center justify-between py-2.5 border-b border-[#f9f7f5]">
-        <span class="text-xs text-gray-400 flex items-center gap-1.5">
-          <i class="fa-solid fa-droplet text-xs"></i>
-          {{ mode === 'donor' ? 'Blood type' : 'Requested type' }}
-        </span>
-        <span class="text-xs font-medium"
-              [style.color]="mode === 'donor' ? '#A32D2D' : '#185FA5'">
-          {{ lastBloodType }}
-        </span>
+        <!-- Camera picker (only when more than one) -->
+        @if (availableDevices.length > 1) {
+          <select
+            class="w-full text-xs text-gray-700 border border-[#ede8e2] rounded-md py-2 px-2 bg-white outline-none"
+            [ngModel]="selectedDevice?.deviceId"
+            (ngModelChange)="onDeviceChange($event)">
+            @for (d of availableDevices; track d.deviceId) {
+              <option [value]="d.deviceId">{{ d.label || 'Camera' }}</option>
+            }
+          </select>
+        }
       </div>
 
-      <div class="flex items-center justify-between py-2.5">
-        <span class="text-xs text-gray-400 flex items-center gap-1.5">
-          <i class="fa-solid fa-circle-check text-xs"></i> Status
-        </span>
-        <span class="text-[10px] font-medium px-2.5 py-1 rounded-md"
-              [style.background]="lastStatusBg"
-              [style.color]="lastStatusColor">
-          {{ lastStatus }}
-        </span>
+      <!-- Divider (vertical on md+, horizontal on mobile) -->
+      <div class="hidden md:block w-px bg-[#f0ebe5]"></div>
+      <hr class="md:hidden border-[#f0ebe5]">
+
+      <!-- RIGHT COLUMN: input + info + submit -->
+      <div class="md:w-1/2 flex flex-col">
+
+        <!-- QR input (manual / hardware scanner fallback) -->
+        <p class="text-[11px] font-medium text-[#888780] uppercase tracking-wider mb-2">QR code</p>
+        <div class="flex items-center border-[1.5px] rounded-[10px] px-3.5 transition-all duration-200"
+             [style.background]="mode === 'donor' ? '#fdf9f7' : '#f5f9ff'"
+             [ngClass]="mode === 'donor'
+               ? 'border-[#ede8e2] focus-within:border-[#A32D2D]'
+               : 'border-[#ede8e2] focus-within:border-[#185FA5]'">
+          <i [class]="mode === 'donor' ? 'fa-solid fa-qrcode' : 'fa-solid fa-scan'"
+             class="text-gray-300 text-base flex-shrink-0"></i>
+          <input
+            #qrInput
+            type="text"
+            [(ngModel)]="qrCode"
+            [disabled]="processing"
+            (keyup.enter)="onSubmit()"
+            [placeholder]="mode === 'donor' ? 'Scan or type QR code here...' : 'Scan or type recipient QR code...'"
+            class="w-full py-3 px-2.5 text-sm text-gray-900 bg-transparent outline-none placeholder-gray-300 disabled:opacity-50"
+          >
+        </div>
+        <p class="text-xs text-gray-400 mt-2 flex items-center gap-1.5">
+          <i class="fa-solid fa-circle-info text-xs"></i>
+          Place cursor here then scan with the hardware scanner
+        </p>
+
+        <!-- Error feedback -->
+        @if (errorMsg) {
+          <p class="text-xs text-[#A32D2D] mt-2 flex items-center gap-1.5">
+            <i class="fa-solid fa-triangle-exclamation"></i> {{ errorMsg }}
+          </p>
+        }
+
+        <hr class="border-[#f0ebe5] my-4">
+
+        <!-- Last scan info -->
+        <div class="flex items-center justify-between py-2.5 border-b border-[#f9f7f5]">
+          <span class="text-xs text-gray-400 flex items-center gap-1.5">
+            <i class="fa-solid fa-user text-xs"></i> Last scanned
+          </span>
+          <span class="text-xs font-medium text-gray-800">{{ lastScanned }}</span>
+        </div>
+
+        <div class="flex items-center justify-between py-2.5 border-b border-[#f9f7f5]">
+          <span class="text-xs text-gray-400 flex items-center gap-1.5">
+            <i class="fa-solid fa-droplet text-xs"></i>
+            {{ mode === 'donor' ? 'Blood type' : 'Requested type' }}
+          </span>
+          <span class="text-xs font-medium"
+                [style.color]="mode === 'donor' ? '#A32D2D' : '#185FA5'">
+            {{ lastBloodType }}
+          </span>
+        </div>
+
+        <div class="flex items-center justify-between py-2.5">
+          <span class="text-xs text-gray-400 flex items-center gap-1.5">
+            <i class="fa-solid fa-circle-check text-xs"></i> Status
+          </span>
+          <span class="status-pill" [ngClass]="lastStatusClass">
+            {{ lastStatus }}
+          </span>
+        </div>
+
+        <!-- Submit button (pushed to the bottom of the column) -->
+        <button
+          (click)="onSubmit()"
+          [disabled]="processing"
+          class="w-full mt-auto pt-3 py-3 rounded-[10px] text-white text-sm font-medium
+                 flex items-center justify-center gap-2 border-none cursor-pointer
+                 transition-all duration-200 active:scale-[0.98]
+                 disabled:opacity-60 disabled:cursor-not-allowed"
+          [style.background]="mode === 'donor' ? '#A32D2D' : '#185FA5'">
+          <i [class]="processing
+                ? 'fa-solid fa-spinner fa-spin text-sm'
+                : (mode === 'donor' ? 'fa-solid fa-qrcode text-sm' : 'fa-solid fa-scan text-sm')"></i>
+          {{ processing
+              ? 'Processing...'
+              : (mode === 'donor' ? 'Process donor scan' : 'Process recipient scan') }}
+        </button>
+
       </div>
-
-      <!-- Submit button -->
-      <button
-        (click)="onSubmit()"
-        class="w-full mt-4 py-3 rounded-[10px] text-white text-sm font-medium
-               flex items-center justify-center gap-2 border-none cursor-pointer
-               transition-all duration-200 active:scale-[0.98]"
-        [style.background]="mode === 'donor' ? '#A32D2D' : '#185FA5'"
-        [style.hover-background]="mode === 'donor' ? '#8f2626' : '#0C447C'">
-        <i [class]="mode === 'donor' ? 'fa-solid fa-qrcode text-sm' : 'fa-solid fa-scan text-sm'"></i>
-        {{ mode === 'donor' ? 'Process donor scan' : 'Process recipient scan' }}
-      </button>
-
     </div>
   </div>
 

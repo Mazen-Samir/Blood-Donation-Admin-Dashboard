@@ -3,7 +3,7 @@ import { authGuard } from './Core/Guard/auth-guard';
 import { Login } from './modules/auth/pages/login/login';
 
 export const routes: Routes = [
-  
+
 
     { path: 'login', component: Login, title: 'Login' },
 
@@ -12,10 +12,10 @@ export const routes: Routes = [
     redirectTo: 'login',
     pathMatch: 'full',
   },
-  
+
   {
     path: 'dashboard',
-    canActivate: [authGuard], // ← protects the entire dashboard subtree
+    canActivate: [authGuard],
     loadComponent: () =>
       import('./modules/features/dashboard/layout/layout').then(
         (m) => m.Layout
@@ -72,6 +72,27 @@ export const routes: Routes = [
           import(
             './modules/features/dashboard/scaning/scaning'
           ).then((m) => m.Scaning),
+      },
+      {
+        path: 'hospitals',
+        loadComponent: () =>
+          import('./modules/features/dashboard/hospitals/hospitals').then(
+            (m) => m.Hospitals
+          ),
+      },
+      {
+        path: 'hospital-admins',
+        loadComponent: () =>
+          import('./modules/features/dashboard/hospital-admins/hospital-admins').then(
+            (m) => m.HospitalAdmins
+          ),
+      },
+      {
+        path: 'rewards',
+        loadComponent: () =>
+          import('./modules/features/dashboard/rewards/rewards').then(
+            (m) => m.Rewards
+          ),
       },
       {
         path: 'scanning/qr-details',

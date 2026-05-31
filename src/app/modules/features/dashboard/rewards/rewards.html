@@ -1,0 +1,196 @@
+<p-toast position="top-right" />
+<p-confirmDialog />
+
+<section class="p-5 bg-[#f4f1ed] min-h-screen">
+
+  <!-- HEADER -->
+  <div class="flex items-start justify-between mb-5">
+    <div>
+      <h1 class="page-title">Manage Rewards</h1>
+      <p class="text-xs text-gray-400 mt-1">Create, edit and delete redeemable rewards for donors</p>
+    </div>
+    <button class="btn-primary" (click)="openCreateDialog()">
+      <i class="fa-solid fa-plus text-xs"></i>
+      Add Reward
+    </button>
+  </div>
+
+  <!-- STATS STRIP -->
+  <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-5">
+    <div class="bg-white rounded-xl border border-[#ede8e2] p-4 flex items-center gap-3">
+      <div class="w-10 h-10 rounded-lg bg-[#fdf0f0] flex items-center justify-center">
+        <i class="fa-solid fa-gift text-[#A32D2D]"></i>
+      </div>
+      <div>
+        <p class="text-xs text-gray-400">Total Rewards</p>
+        <p class="text-xl font-bold text-gray-800">{{ rewards.length }}</p>
+      </div>
+    </div>
+    <div class="bg-white rounded-xl border border-[#ede8e2] p-4 flex items-center gap-3">
+      <div class="w-10 h-10 rounded-lg bg-[#f0f7ff] flex items-center justify-center">
+        <i class="fa-solid fa-star text-[#185FA5]"></i>
+      </div>
+      <div>
+        <p class="text-xs text-gray-400">Min Points</p>
+        <p class="text-xl font-bold text-gray-800">{{ minPoints }}</p>
+      </div>
+    </div>
+    <div class="bg-white rounded-xl border border-[#ede8e2] p-4 flex items-center gap-3">
+      <div class="w-10 h-10 rounded-lg bg-[#f0fdf4] flex items-center justify-center">
+        <i class="fa-solid fa-trophy text-[#3B6D11]"></i>
+      </div>
+      <div>
+        <p class="text-xs text-gray-400">Max Points</p>
+        <p class="text-xl font-bold text-gray-800">{{ maxPoints }}</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- TABLE -->
+  <div class="data-table">
+    <p-table
+      [value]="rewards"
+      [loading]="isLoading"
+      [tableStyle]="{ 'min-width': '50rem' }"
+      [paginator]="true"
+      [rows]="8"
+      [rowsPerPageOptions]="[5, 10, 20]"
+    >
+      <ng-template #header>
+        <tr>
+          <th class="text-left!">#</th>
+          <th class="text-left!">Title</th>
+          <th class="text-left!">Description</th>
+          <th>Points Required</th>
+          <th>Actions</th>
+        </tr>
+      </ng-template>
+
+      <ng-template #body let-reward let-i="rowIndex">
+        <tr>
+          <td class="text-gray-400! text-left!">{{ i + 1 }}</td>
+          <td class="font-medium text-gray-900! text-left!">{{ reward.title }}</td>
+          <td class="text-gray-500! text-left! max-w-xs truncate">{{ reward.description }}</td>
+          <td>
+            <span class="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold bg-[#fdf0f0] text-[#A32D2D]">
+              <i class="fa-solid fa-star text-[10px]"></i>
+              {{ reward.pointsRequired }} pts
+            </span>
+          </td>
+          <td>
+            <div class="flex items-center justify-center gap-1.5">
+              <!-- Edit -->
+              <button
+                class="w-7 h-7 rounded-lg border border-[#ede8e2] bg-white
+                       flex items-center justify-center cursor-pointer
+                       hover:bg-[#f4f1ed] transition-colors"
+                style="color:#185FA5"
+                (click)="openEditDialog(reward)"
+                title="Edit"
+              >
+                <i class="fa-regular fa-pen-to-square text-xs"></i>
+              </button>
+              <!-- Delete -->
+              <button
+                class="w-7 h-7 rounded-lg border border-[#ede8e2] bg-white
+                       flex items-center justify-center cursor-pointer
+                       hover:bg-red-50 transition-colors"
+                style="color:#A32D2D"
+                (click)="confirmDelete(reward)"
+                title="Delete"
+              >
+                <i class="fa-regular fa-trash-can text-xs"></i>
+              </button>
+            </div>
+          </td>
+        </tr>
+      </ng-template>
+
+      <ng-template #emptymessage>
+        <tr>
+          <td colspan="5" class="text-center! py-10 text-gray-400!">
+            <i class="fa-solid fa-gift text-3xl mb-2 block opacity-30"></i>
+            No rewards found. Click <strong>Add Reward</strong> to create one.
+          </td>
+        </tr>
+      </ng-template>
+    </p-table>
+  </div>
+
+</section>
+
+<!-- CREATE / EDIT DIALOG -->
+<p-dialog
+  [(visible)]="showDialog"
+  [header]="isEditMode ? 'Edit Reward' : 'Add New Reward'"
+  [modal]="true"
+  [closable]="true"
+  [draggable]="false"
+  [resizable]="false"
+  styleClass="reward-dialog"
+  [style]="{ width: '440px' }"
+>
+  <div class="flex flex-col gap-4 pt-2">
+
+    <!-- Title -->
+    <div class="flex flex-col gap-1.5">
+      <label class="text-sm font-medium text-gray-700">Title <span class="text-red-500">*</span></label>
+      <input
+        pInputText
+        type="text"
+        [(ngModel)]="form.title"
+        placeholder="e.g. Free Medical Check-up"
+        class="w-full"
+      />
+    </div>
+
+    <!-- Description -->
+    <div class="flex flex-col gap-1.5">
+      <label class="text-sm font-medium text-gray-700">Description <span class="text-red-500">*</span></label>
+      <textarea
+        pTextarea
+        [(ngModel)]="form.description"
+        placeholder="Describe the reward..."
+        rows="3"
+        class="w-full resize-none"
+      ></textarea>
+    </div>
+
+    <!-- Points Required -->
+    <div class="flex flex-col gap-1.5">
+      <label class="text-sm font-medium text-gray-700">Points Required <span class="text-red-500">*</span></label>
+      <p-inputnumber
+        [(ngModel)]="form.pointsRequired"
+        [min]="1"
+        [showButtons]="true"
+        buttonLayout="horizontal"
+        incrementButtonIcon="pi pi-plus"
+        decrementButtonIcon="pi pi-minus"
+        styleClass="w-full"
+        inputStyleClass="w-full text-center"
+      />
+    </div>
+
+  </div>
+
+  <ng-template #footer>
+    <div class="flex justify-end gap-2 pt-2">
+      <button
+        class="px-4 py-2 rounded-lg border border-[#ede8e2] bg-white text-sm text-gray-600
+               hover:bg-[#f4f1ed] transition-colors cursor-pointer"
+        (click)="showDialog = false"
+      >
+        Cancel
+      </button>
+      <button
+        class="btn-primary"
+        (click)="saveReward()"
+        [disabled]="isSaving"
+      >
+        <i class="fa-solid fa-floppy-disk text-xs" *ngIf="!isSaving"></i>
+        <i class="fa-solid fa-spinner fa-spin text-xs" *ngIf="isSaving"></i>
+        {{ isSaving ? 'Saving…' : (isEditMode ? 'Update' : 'Create') }}
+      </button>
+    </div>
+  </ng-template>
+</p-dialog>

@@ -1,0 +1,209 @@
+<p-toast position="top-right" />
+<p-confirmDialog />
+
+<section class="p-5 bg-[#f4f1ed] min-h-screen">
+  <div class="flex items-start justify-between mb-5">
+    <div>
+      <h1 class="page-title">Hospital Admins</h1>
+      <p class="text-xs text-gray-400 mt-1">Manage hospital admin accounts and their hospital assignments</p>
+    </div>
+    <button class="btn-primary" (click)="openCreateDialog()">
+      <i class="fa-solid fa-plus text-xs"></i> Add Admin
+    </button>
+  </div>
+
+  <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-5">
+    <div class="bg-white rounded-xl border border-[#ede8e2] p-4 flex items-center gap-3">
+      <div class="w-10 h-10 rounded-lg bg-[#fdf0f0] flex items-center justify-center">
+        <i class="fa-solid fa-user-doctor text-[#A32D2D]"></i>
+      </div>
+      <div>
+        <p class="text-xs text-gray-400">Total Admins</p>
+        <p class="text-xl font-bold text-gray-800">{{ admins.length }}</p>
+      </div>
+    </div>
+    <div class="bg-white rounded-xl border border-[#ede8e2] p-4 flex items-center gap-3">
+      <div class="w-10 h-10 rounded-lg bg-[#f0f7ff] flex items-center justify-center">
+        <i class="fa-solid fa-hospital text-[#185FA5]"></i>
+      </div>
+      <div>
+        <p class="text-xs text-gray-400">Hospitals Covered</p>
+        <p class="text-xl font-bold text-gray-800">{{ hospitals.length }}</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="bg-white rounded-xl border border-[#ede8e2] px-4 py-3 flex items-center gap-3 mb-3 focus-within:border-[#A32D2D] transition-colors">
+    <i class="fa-solid fa-magnifying-glass text-gray-300 text-sm"></i>
+    <input #searchInput type="text" placeholder="Search by name, email or phone"
+      class="w-full outline-none text-sm text-gray-700 placeholder-gray-300 bg-transparent"
+      (input)="onSearch(searchInput.value)">
+    @if (searchQuery) {
+      <i class="fa-solid fa-xmark text-gray-300 text-sm cursor-pointer hover:text-[#A32D2D]"
+         (click)="searchInput.value = ''; onSearch('')"></i>
+    }
+  </div>
+
+  <div class="data-table">
+    <p-table [value]="filteredAdmins" [loading]="isLoading"
+             [tableStyle]="{ 'min-width': '55rem' }" [paginator]="true" [rows]="8" [rowsPerPageOptions]="[5,10,20]">
+      <ng-template #header>
+        <tr>
+          <th class="text-left!">#</th>
+          <th class="text-left!">Full Name</th>
+          <th class="text-left!">Email</th>
+          <th>Phone</th>
+          <th>Hospital</th>
+          <th>Actions</th>
+        </tr>
+      </ng-template>
+      <ng-template #body let-admin let-i="rowIndex">
+        <tr>
+          <td class="text-gray-400! text-left!">{{ i + 1 }}</td>
+          <td class="font-medium text-gray-900! text-left!">
+            <div class="flex items-center gap-2">
+              <div class="w-7 h-7 rounded-full bg-[#fdf0f0] flex items-center justify-center flex-shrink-0">
+                <i class="fa-solid fa-user text-[#A32D2D] text-xs"></i>
+              </div>
+              {{ admin.fullName }}
+            </div>
+          </td>
+          <td class="text-gray-500! text-left!">{{ admin.email }}</td>
+          <td class="text-gray-500!">{{ admin.phoneNumber }}</td>
+          <td>
+            <span class="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold bg-[#f0f7ff] text-[#185FA5]">
+              <i class="fa-solid fa-hospital text-[10px]"></i>
+              {{ admin.hospitalName ?? getHospitalName(admin.hospitalId) }}
+            </span>
+          </td>
+          <td>
+            <div class="flex items-center justify-center gap-1.5">
+              <button class="w-7 h-7 rounded-lg border border-[#ede8e2] bg-white flex items-center justify-center cursor-pointer hover:bg-[#f4f1ed] transition-colors"
+                      style="color:#185FA5" (click)="openEditDialog(admin)" title="Edit">
+                <i class="fa-regular fa-pen-to-square text-xs"></i>
+              </button>
+              <button class="w-7 h-7 rounded-lg border border-[#ede8e2] bg-white flex items-center justify-center cursor-pointer hover:bg-red-50 transition-colors"
+                      style="color:#A32D2D" (click)="confirmDelete(admin)" title="Delete">
+                <i class="fa-regular fa-trash-can text-xs"></i>
+              </button>
+            </div>
+          </td>
+        </tr>
+      </ng-template>
+      <ng-template #emptymessage>
+        <tr><td colspan="6" class="text-center! py-10 text-gray-400!">
+          <i class="fa-solid fa-user-doctor text-3xl mb-2 block opacity-30"></i>
+          No hospital admins found.
+        </td></tr>
+      </ng-template>
+    </p-table>
+  </div>
+</section>
+
+<!-- Create Dialog -->
+@if (!isEditMode) {
+  <p-dialog [(visible)]="showDialog" header="Add Hospital Admin"
+            [modal]="true" [closable]="true" [draggable]="false" [resizable]="false" [style]="{ width: '460px' }">
+    <div class="flex flex-col gap-4 pt-2">
+      <div class="flex flex-col gap-1.5">
+        <label class="text-sm font-medium text-gray-700">Full Name <span class="text-red-500">*</span></label>
+        <input pInputText type="text" [(ngModel)]="createForm.fullName" placeholder="e.g. John Doe" class="w-full" />
+      </div>
+      <div class="flex flex-col gap-1.5">
+        <label class="text-sm font-medium text-gray-700">Email <span class="text-red-500">*</span></label>
+        <input pInputText type="email" [(ngModel)]="createForm.email" placeholder="admin@example.com" class="w-full" />
+      </div>
+      <div class="flex flex-col gap-1.5">
+        <label class="text-sm font-medium text-gray-700">Phone Number <span class="text-red-500">*</span></label>
+        <input pInputText type="text" [(ngModel)]="createForm.phoneNumber" placeholder="01xxxxxxxxx" class="w-full" />
+      </div>
+      <div class="flex flex-col gap-1.5">
+        <label class="text-sm font-medium text-gray-700">Password <span class="text-red-500">*</span></label>
+        <input pInputText type="password" [(ngModel)]="createForm.password" placeholder="Min 8 characters" class="w-full" />
+      </div>
+      <div class="flex flex-col gap-1.5">
+        <label class="text-sm font-medium text-gray-700">
+          Hospital <span class="text-red-500">*</span>
+          @if (hospitalsLoading) { <span class="text-xs text-gray-400 ml-1">(loading…)</span> }
+          @if (!hospitalsLoading && hospitals.length === 0) { <span class="text-xs text-red-400 ml-1">(failed to load)</span> }
+        </label>
+        <select [(ngModel)]="createForm.hospitalId"
+                class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm text-gray-700 outline-none focus:border-[#A32D2D] bg-white">
+          <option [ngValue]="0" disabled>
+            {{ hospitalsLoading ? 'Loading hospitals…' : (hospitals.length === 0 ? 'No hospitals available' : 'Select a hospital') }}
+          </option>
+          @for (h of hospitals; track h.id) {
+            <option [ngValue]="h.id">{{ h.name }}</option>
+          }
+        </select>
+        @if (!hospitalsLoading && hospitals.length === 0) {
+          <button type="button" class="text-xs text-[#A32D2D] underline text-left mt-1 cursor-pointer bg-transparent border-none"
+                  (click)="loadHospitals()">Retry loading hospitals</button>
+        }
+      </div>
+    </div>
+    <ng-template #footer>
+      <div class="flex justify-end gap-2 pt-2">
+        <button class="px-4 py-2 rounded-lg border border-[#ede8e2] bg-white text-sm text-gray-600 hover:bg-[#f4f1ed] transition-colors cursor-pointer"
+                (click)="showDialog = false">Cancel</button>
+        <button class="btn-primary" (click)="saveAdmin()" [disabled]="isSaving">
+          @if (!isSaving) { <i class="fa-solid fa-floppy-disk text-xs"></i> }
+          @if (isSaving) { <i class="fa-solid fa-spinner fa-spin text-xs"></i> }
+          {{ isSaving ? 'Saving…' : 'Create' }}
+        </button>
+      </div>
+    </ng-template>
+  </p-dialog>
+}
+
+<!-- Edit Dialog -->
+@if (isEditMode) {
+  <p-dialog [(visible)]="showDialog" header="Edit Hospital Admin"
+            [modal]="true" [closable]="true" [draggable]="false" [resizable]="false" [style]="{ width: '460px' }">
+    <div class="flex flex-col gap-4 pt-2">
+      <div class="flex flex-col gap-1.5">
+        <label class="text-sm font-medium text-gray-700">Full Name <span class="text-red-500">*</span></label>
+        <input pInputText type="text" [(ngModel)]="editForm.fullName" placeholder="e.g. John Doe" class="w-full" />
+      </div>
+      <div class="flex flex-col gap-1.5">
+        <label class="text-sm font-medium text-gray-700">Email <span class="text-red-500">*</span></label>
+        <input pInputText type="email" [(ngModel)]="editForm.email" placeholder="admin@example.com" class="w-full" />
+      </div>
+      <div class="flex flex-col gap-1.5">
+        <label class="text-sm font-medium text-gray-700">Phone Number <span class="text-red-500">*</span></label>
+        <input pInputText type="text" [(ngModel)]="editForm.phoneNumber" placeholder="01xxxxxxxxx" class="w-full" />
+      </div>
+      <div class="flex flex-col gap-1.5">
+        <label class="text-sm font-medium text-gray-700">
+          Hospital <span class="text-red-500">*</span>
+          @if (hospitalsLoading) { <span class="text-xs text-gray-400 ml-1">(loading…)</span> }
+          @if (!hospitalsLoading && hospitals.length === 0) { <span class="text-xs text-red-400 ml-1">(failed to load)</span> }
+        </label>
+        <select [(ngModel)]="editForm.hospitalId"
+                class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm text-gray-700 outline-none focus:border-[#A32D2D] bg-white">
+          <option [ngValue]="0" disabled>
+            {{ hospitalsLoading ? 'Loading hospitals…' : (hospitals.length === 0 ? 'No hospitals available' : 'Select a hospital') }}
+          </option>
+          @for (h of hospitals; track h.id) {
+            <option [ngValue]="h.id">{{ h.name }}</option>
+          }
+        </select>
+        @if (!hospitalsLoading && hospitals.length === 0) {
+          <button type="button" class="text-xs text-[#A32D2D] underline text-left mt-1 cursor-pointer bg-transparent border-none"
+                  (click)="loadHospitals()">Retry loading hospitals</button>
+        }
+      </div>
+    </div>
+    <ng-template #footer>
+      <div class="flex justify-end gap-2 pt-2">
+        <button class="px-4 py-2 rounded-lg border border-[#ede8e2] bg-white text-sm text-gray-600 hover:bg-[#f4f1ed] transition-colors cursor-pointer"
+                (click)="showDialog = false">Cancel</button>
+        <button class="btn-primary" (click)="saveAdmin()" [disabled]="isSaving">
+          @if (!isSaving) { <i class="fa-solid fa-floppy-disk text-xs"></i> }
+          @if (isSaving) { <i class="fa-solid fa-spinner fa-spin text-xs"></i> }
+          {{ isSaving ? 'Saving…' : 'Update' }}
+        </button>
+      </div>
+    </ng-template>
+  </p-dialog>
+}
