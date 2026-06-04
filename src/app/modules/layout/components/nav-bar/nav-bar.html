@@ -2,7 +2,12 @@
     <div class="flex items-center justify-between px-5 py-4 border-b border-gray-300">
         <!-- Hospital Name -->
         <div>
-            <h1 class="text-xl font-medium">City General Hospital</h1>
+            @if (isHospAdmin) {
+                
+                <h1 class="text-xl font-medium">Hospital Administration</h1>
+            }@else {
+                <h1 class="text-xl font-medium">App Administration</h1>
+            }
         </div>
 
         <div class="flex items-center gap-4">

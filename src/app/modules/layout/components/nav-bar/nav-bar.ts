@@ -1,16 +1,22 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { AuthService } from '../../../../Core/Services/auth';
 import { Router } from '@angular/router';
+import { CommonModule } from '@angular/common';
 
 
 @Component({
   selector: 'app-nav-bar',
-  imports: [],
+  imports: [CommonModule],
   templateUrl: './nav-bar.html',
   styleUrl: './nav-bar.css',
 })
 export class NavBar {
-  constructor(private authService: AuthService, private router: Router) {}
+  constructor(private router: Router) {}
+
+  private authService    = inject(AuthService);
+
+  isAppAdmin = this.authService.isAppAdmin();
+  isHospAdmin = this.authService.isHospitalAdmin();
   
 
 getFullName() {
