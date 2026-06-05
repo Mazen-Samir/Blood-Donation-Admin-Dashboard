@@ -60,7 +60,7 @@
         <tr>
           <th class="text-left!">#</th>
           <th class="text-left!">Title</th>
-          <th class="text-left!">Description</th>
+          <!-- <th class="text-left!">Description</th> -->
           <th>Points Required</th>
           <th>Actions</th>
         </tr>
@@ -70,7 +70,7 @@
         <tr>
           <td class="text-gray-400! text-left!">{{ i + 1 }}</td>
           <td class="font-medium text-gray-900! text-left!">{{ reward.title }}</td>
-          <td class="text-gray-500! text-left! max-w-xs truncate">{{ reward.description }}</td>
+          <!-- <td class="text-gray-500! text-left! max-w-xs truncate">{{ reward.description }}</td> -->
           <td>
             <span class="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold bg-[#fdf0f0] text-[#A32D2D]">
               <i class="fa-solid fa-star text-[10px]"></i>
@@ -79,6 +79,17 @@
           </td>
           <td>
             <div class="flex items-center justify-center gap-1.5">
+              <!-- Show Details -->
+              <button
+                class="w-7 h-7 rounded-lg border border-[#ede8e2] bg-white
+                       flex items-center justify-center cursor-pointer
+                       hover:bg-red-50 transition-colors"
+                style="color:rgb(0, 103, 0)"
+                (click)="openDetailsDialog(reward)"
+                title="Show Details"
+              >
+                <i class="fa-regular fa-eye text-xs"></i>
+              </button>
               <!-- Edit -->
               <button
                 class="w-7 h-7 rounded-lg border border-[#ede8e2] bg-white
@@ -118,6 +129,47 @@
   </div>
 
 </section>
+
+<!-- SHOW DETAILS DIALOG -->
+<p-dialog
+  [(visible)]="showDetailsDialog"
+  header="Reward Details"
+  [modal]="true"
+  [closable]="true"
+  [draggable]="false"
+  [resizable]="false"
+  styleClass="reward-dialog"
+  [style]="{ width: '440px' }"
+>
+  <div class="flex flex-col gap-4 pt-2">
+    <div class="flex flex-col gap-1.5">
+      <label class="text-sm font-medium text-white">Title</label>
+      <p class="text-lg font-bold text-gray-300">{{ rewardById?.title }}</p>
+    </div>
+
+    <div class="flex flex-col gap-1.5">
+      <label class="text-sm font-medium text-white">Description</label>
+      <p class="text-gray-300">{{ rewardById?.description }}</p>
+    </div>
+
+    <div class="flex flex-col gap-1.5">
+      <label class="text-sm font-medium text-white">Points Required</label>
+      <p class="text-lg font-bold text-green-500">{{ rewardById?.pointsRequired }}</p>
+    </div>
+  </div>
+
+  <ng-template #footer>
+    <div class="flex justify-end gap-2 pt-2">
+      <button
+        class="px-4 py-2 rounded-lg border border-[#ede8e2] bg-white text-sm text-gray-600
+               hover:bg-[#f4f1ed] transition-colors cursor-pointer"
+        (click)="showDetailsDialog = false"
+      >
+        Close
+      </button>
+    </div>
+  </ng-template>
+</p-dialog>
 
 <!-- CREATE / EDIT DIALOG -->
 <p-dialog

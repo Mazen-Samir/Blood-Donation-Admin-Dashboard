@@ -40,9 +40,11 @@ export class Rewards implements OnInit, OnDestroy {
   private confirmationService = inject(ConfirmationService);
 
   rewards: Reward[] = [];
+  rewardById: Reward | null = null;
   isLoading = false;
 
   showDialog = false;
+  showDetailsDialog = false;
   isEditMode = false;
   isSaving = false;
   selectedRewardId: number | null = null;
@@ -63,6 +65,7 @@ export class Rewards implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.loadRewards();
+    this.loadRewardById(1);
   }
 
   ngOnDestroy(): void {
@@ -92,6 +95,22 @@ export class Rewards implements OnInit, OnDestroy {
       });
   }
 
+  loadRewardById(id: number): void {
+    this.rewardsService.getById(id).pipe(takeUntil(this.destroy$)).subscribe({
+      next: (data) => {
+        this.rewardById = data;
+      },
+      error: (err) => {
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: err?.error?.message ?? 'Failed to load reward.',
+          life: 4000,
+        });
+      },
+    });
+  }
+
   openCreateDialog(): void {
     this.isEditMode = false;
     this.selectedRewardId = null;
@@ -104,6 +123,11 @@ export class Rewards implements OnInit, OnDestroy {
     this.selectedRewardId = reward.id;
     this.form = { title: reward.title, description: reward.description, pointsRequired: reward.pointsRequired };
     this.showDialog = true;
+  }
+
+  openDetailsDialog(reward: Reward): void {
+    this.loadRewardById(reward.id);
+    this.showDetailsDialog = true;
   }
 
   saveReward(): void {
