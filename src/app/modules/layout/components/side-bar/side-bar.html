@@ -6,7 +6,13 @@
       </span>
       <div>
         <h1 class="font-bold text-lg">BloodConnect</h1>
-        <p class="text-gray-500 text-sm">Hospital Admin</p>
+        @if (isHospAdmin) {
+          
+          <p class="text-gray-500 text-sm">Hospital Admin</p>
+        }@else{
+          
+          <p class="text-gray-500 text-sm">App Admin</p>
+        }
       </div>
     </div>
     <div class="menu-toggel" (click)="SindeNavToggle()">
@@ -17,6 +23,9 @@
   <div class="menu-bar flex flex-col justify-between">
     <div class="menu">
       <ul class="menu-links list-unstyled flex flex-col gap-3">
+
+        <!-- CHECK USER ROLE TO SHOW LINKS -->
+
         <li class="nav-link">
           <a routerLinkActive="link-active" routerLink="home">
             <i class="fa-solid fa-house-chimney icon"></i>
@@ -66,27 +75,31 @@
           </a>
           <span class="title">AI</span>
         </li>
-        <li class="nav-link">
-          <a routerLinkActive="link-active" routerLink="hospitals">
-            <i class="fa-solid fa-hospital icon"></i>
-            <span class="text nav-text">Hospitals</span>
-          </a>
-          <span class="title">Hospitals</span>
-        </li>
-        <li class="nav-link">
-          <a routerLinkActive="link-active" routerLink="hospital-admins">
-            <i class="fa-solid fa-user-doctor icon"></i>
-            <span class="text nav-text">Hospital Admins</span>
-          </a>
-          <span class="title">H. Admins</span>
-        </li>
-        <li class="nav-link">
-          <a routerLinkActive="link-active" routerLink="rewards">
-            <i class="fa-solid fa-gift icon"></i>
-            <span class="text nav-text">Rewards</span>
-          </a>
-          <span class="title">Rewards</span>
-        </li>
+
+        @if (isAppAdmin) {
+          <li class="nav-link">
+            <a routerLinkActive="link-active" routerLink="hospitals">
+              <i class="fa-solid fa-hospital icon"></i>
+              <span class="text nav-text">Hospitals</span>
+            </a>
+            <span class="title">Hospitals</span>
+          </li>
+          <li class="nav-link">
+            <a routerLinkActive="link-active" routerLink="hospital-admins">
+              <i class="fa-solid fa-user-doctor icon"></i>
+              <span class="text nav-text">Hospital Admins</span>
+            </a>
+            <span class="title">H.Admins</span>
+          </li>
+          <li class="nav-link">
+            <a routerLinkActive="link-active" routerLink="rewards">
+              <i class="fa-solid fa-gift icon"></i>
+              <span class="text nav-text">Rewards</span>
+            </a>
+            <span class="title">Rewards</span>
+          </li>
+        }
+
       </ul>
     </div>
   </div>

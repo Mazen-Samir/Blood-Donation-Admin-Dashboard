@@ -18,6 +18,11 @@ export class RewardsService {
     return this.http.get<Reward[]>(`${this.BASE_URL}/api/rewards`);
   }
 
+  // GET /api/rewards/{id} — 
+  getById(id: number): Observable<Reward> {
+    return this.http.get<Reward>(`${this.BASE_URL}/api/rewards/${id}`);
+  }
+
   /** POST /api/admin/rewards — AppAdmin */
   create(body: CreateRewardRequest): Observable<Reward> {
     return this.http.post<Reward>(`${this.BASE_URL}/api/admin/rewards`, body);
