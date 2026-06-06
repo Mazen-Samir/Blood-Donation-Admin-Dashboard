@@ -1,23 +1,33 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ButtonModule } from 'primeng/button';
 import { TableModule } from 'primeng/table';
 import { ToastModule } from 'primeng/toast';
+import { DialogModule } from 'primeng/dialog';
 import { MessageService } from 'primeng/api';
+import { QRCodeComponent } from 'angularx-qrcode';
 
 import { RequestsService } from '../../../../Core/Services/requests';
-import { BloodRequest } from '../../../../Core/interface/api-models';
+import { BloodRequest, QrTokenResponse } from '../../../../Core/interface/api-models';
 
 @Component({
   selector: 'app-requests',
   standalone: true,
-  imports: [CommonModule, ButtonModule, TableModule, FormsModule, ToastModule],
+  imports: [
+    CommonModule,
+    ButtonModule,
+    TableModule,
+    FormsModule,
+    ToastModule,
+    DialogModule,
+    QRCodeComponent,
+  ],
   providers: [MessageService],
   templateUrl: './requests.html',
   styleUrl: './requests.css',
 })
-export class Requests implements OnInit {
+export class Requests implements OnInit, OnDestroy {
   private requestsService = inject(RequestsService);
   private messageService = inject(MessageService);
 
@@ -36,6 +46,18 @@ export class Requests implements OnInit {
 
   /** One big pull to count across everything. Bump if you ever exceed it. */
   private readonly STATS_PAGE_SIZE = 1000;
+
+  // ─── Pick-up QR dialog ────────────────────────────────────────────────────────
+  qrDialogVisible = false;
+  qrLoading = false;      // first load (full spinner)
+  qrRefreshing = false;   // silent background refresh
+  qrRequestId: number | null = null;
+  qrToken = '';
+  qrImageBase64 = '';
+
+  /** Pickup tokens are short-lived, so re-fetch while the dialog is open. */
+  private readonly QR_REFRESH_MS = 14 * 60 * 1000; // 14 minutes
+  private qrTimer?: ReturnType<typeof setInterval>;
 
   // ─── Summary counts (calculated client-side over the full set) ──────────────
   get pendingCount(): number {
@@ -109,6 +131,75 @@ export class Requests implements OnInit {
       });
   }
 
+  // ─── Pick-up QR ───────────────────────────────────────────────────────────────
+  /** Opens the dialog, fetches the QR, and starts the 14-min auto-refresh. */
+  openQr(request: BloodRequest): void {
+    this.qrRequestId = request.id;
+    this.qrToken = '';
+    this.qrImageBase64 = '';
+    this.qrDialogVisible = true;
+    this.fetchQr(true);
+    this.startQrRefresh();
+  }
+
+  /** Manual "Refresh now" — resets the 14-min cycle too. */
+  refreshQr(): void {
+    if (this.qrRequestId == null) return;
+    this.fetchQr(false);
+    this.startQrRefresh();
+  }
+
+  /** GET /api/requests/{id}/pickup-qr. showLoading=true on first open. */
+  private fetchQr(showLoading: boolean): void {
+    if (this.qrRequestId == null) return;
+    if (showLoading) {
+      this.qrLoading = true;
+    } else {
+      // Clear the displayed QR so the @else-if condition drops the old element
+      // from the DOM — guarantees a fresh remount with the new token.
+      this.qrRefreshing = true;
+      this.qrToken = '';
+      this.qrImageBase64 = '';
+    }
+
+    this.requestsService.getPickupQr(this.qrRequestId).subscribe({
+      next: (res: QrTokenResponse) => {
+        this.qrToken = res.qrToken ?? '';
+        this.qrImageBase64 = res.qrImageBase64 ?? '';
+        this.qrLoading = false;
+        this.qrRefreshing = false;
+      },
+      error: (err) => {
+        this.qrLoading = false;
+        this.qrRefreshing = false;
+        // On first-open failure, close & stop. A failed silent refresh keeps the old QR.
+        if (showLoading) {
+          this.qrDialogVisible = false;
+          this.stopQrRefresh();
+        }
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: err?.error?.message ?? 'Could not load the pick-up QR.',
+          life: 4000,
+        });
+      },
+    });
+  }
+
+  private startQrRefresh(): void {
+    this.stopQrRefresh();
+    this.qrTimer = setInterval(() => this.fetchQr(false), this.QR_REFRESH_MS);
+  }
+
+  /** Called on dialog (onHide) and ngOnDestroy. */
+  stopQrRefresh(): void {
+    if (this.qrTimer) {
+      clearInterval(this.qrTimer);
+      this.qrTimer = undefined;
+    }
+  }
+
   /**
    * Shape-agnostic extractor for paginated list endpoints.
    * Handles: plain array, { data: [] }, { items: [] }, and single-key
@@ -160,5 +251,9 @@ export class Requests implements OnInit {
       default:
         return 's-inactive';
     }
+  }
+
+  ngOnDestroy(): void {
+    this.stopQrRefresh();
   }
 }

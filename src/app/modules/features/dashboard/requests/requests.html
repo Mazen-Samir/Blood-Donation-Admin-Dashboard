@@ -92,6 +92,7 @@
           <th>QUANTITY</th>
           <th>REQUEST DATE</th>
           <th>STATUS</th>
+          <th class="text-center!">QR</th>
         </tr>
       </ng-template>
       <ng-template #body let-request>
@@ -100,19 +101,97 @@
           <td class="font-medium text-gray-700!">{{ request.patientName }}</td>
           <td><span class="bt-pill">{{ request.bloodType }}</span></td>
           <td class="text-gray-500!">{{ request.quantity }} Units</td>
-          <td class="text-gray-400!">{{ request.date }}</td>
+          <td class="text-gray-400!">{{ request.createdAt | date:'short' }}</td>
           <td>
             <span class="status-pill" [ngClass]="getStatusClass(request.status)">
               {{ request.status }}
             </span>
           </td>
+          <td class="text-center!">
+            <button
+              type="button"
+              (click)="openQr(request)"
+              title="Show pick-up QR"
+              class="w-8 h-8 rounded-md inline-flex items-center justify-center border border-[#ede8e2]
+                     text-[#A32D2D] hover:bg-[#FCEBEB] transition-colors cursor-pointer">
+              <i class="fa-solid fa-qrcode text-sm"></i>
+            </button>
+          </td>
         </tr>
       </ng-template>
       <ng-template #emptymessage>
         <tr>
-          <td colspan="6" class="text-center py-8 text-gray-400">No requests found.</td>
+          <td colspan="7" class="text-center py-8 text-gray-400">No requests found.</td>
         </tr>
       </ng-template>
     </p-table>
   </div>
 </section>
+
+<!-- PICK-UP QR DIALOG -->
+<p-dialog
+  [(visible)]="qrDialogVisible"
+  [modal]="true"
+  [draggable]="false"
+  [resizable]="false"
+  [dismissableMask]="true"
+  [style]="{ width: '340px' }"
+  (onHide)="stopQrRefresh()"
+  [header]="qrRequestId ? 'Pick-up QR · R-' + qrRequestId : 'Pick-up QR'"
+>
+  <div class="flex flex-col items-center gap-4 py-2">
+    @if (qrLoading) {
+      <div class="py-12 flex flex-col items-center gap-2 text-[#888780]">
+        <i class="fa-solid fa-spinner fa-spin text-2xl"></i>
+        <span class="text-xs">Loading QR…</span>
+      </div>
+    } @else if (qrRefreshing) {
+      <div class="py-12 flex flex-col items-center gap-2 text-[#888780]">
+        <i class="fa-solid fa-spinner fa-spin text-2xl"></i>
+        <span class="text-xs">Refreshing QR…</span>
+      </div>
+    } @else if (qrImageBase64) {
+      <img
+        [src]="'data:image/png;base64,' + qrImageBase64"
+        alt="Pick-up QR"
+        class="w-[220px] h-[220px] rounded-lg"
+      />
+    } @else if (qrToken) {
+      <qrcode
+        [qrdata]="qrToken"
+        [width]="220"
+        [margin]="2"
+        [errorCorrectionLevel]="'M'"
+        cssClass="rounded-lg"
+      ></qrcode>
+    } @else {
+      <p class="text-xs text-[#888780] py-12">No QR available for this request.</p>
+    }
+
+    @if (!qrLoading && qrToken) {
+      <div class="w-full">
+        <p class="text-[11px] font-medium text-[#888780] uppercase tracking-wider mb-1">Token</p>
+        <code class="block text-[11px] break-all bg-[#f7f5f3] border border-[#f0ebe5] rounded-md p-2 text-gray-600">
+          {{ qrToken }}
+        </code>
+      </div>
+
+      <div class="w-full flex items-center justify-between pt-1">
+        <span class="text-[11px] text-[#888780] flex items-center gap-1.5">
+          @if (qrRefreshing) {
+            <i class="fa-solid fa-spinner fa-spin"></i> Refreshing…
+          } @else {
+            <i class="fa-solid fa-rotate"></i> Auto-refreshes every 14 min
+          }
+        </span>
+        <button
+          type="button"
+          (click)="refreshQr()"
+          [disabled]="qrRefreshing"
+          class="text-[11px] font-medium text-[#A32D2D] hover:underline disabled:opacity-50 cursor-pointer">
+          Refresh now
+        </button>
+      </div>
+    }
+  </div>
+</p-dialog>

@@ -26,18 +26,16 @@ export class DonationsService {
     const params = new HttpParams()
       .set('PageNumber', pagination.currentPage.toString())
       .set('PageSize', pagination.pageSize.toString());
-  
 
     return this.http.get<PaginatedResponse<Donation>>(
-      `${this.BASE_URL}/api/admin/donations`,  // ✅ was /api/hospital/donations
+      `${this.BASE_URL}/api/admin/donations`,
       { params }
-    ) as Observable<PaginatedResponse<Donation>>;
+    );
   }
 
   /**
    * GET /api/hospital/donations/{id}/pickup-qr
-   * Role: User (donor)
-   * Generates a QR for a general (walk-in) donation.
+   * Generates the QR token (and optional image) for a general donation.
    */
   getGeneralDonationQr(donationId: number): Observable<QrTokenResponse> {
     return this.http.get<QrTokenResponse>(
@@ -46,16 +44,14 @@ export class DonationsService {
   }
 
   /**
-   * POST /api/hospital/donations/{id}/scan
-   * Role: HospitalAdmin or authenticated user
-   * Validates and confirms a general (walk-in) donation via QR.
+   * POST /api/hospital/donations/scan
+   * Validates and confirms a general (walk-in) donation via its QR token.
+   * The server resolves the donation from the token, so no id is needed.
+   * Body: { qrToken }
    */
-  scanGeneralDonation(
-    donationId: number,
-    body: QrScanRequest
-  ): Observable<QrScanResponse> {
+  scanGeneralDonation(body: QrScanRequest): Observable<QrScanResponse> {
     return this.http.post<QrScanResponse>(
-      `${this.BASE_URL}/api/hospital/donations/${donationId}/scan`,
+      `${this.BASE_URL}/api/hospital/donations/scan`,
       body
     );
   }

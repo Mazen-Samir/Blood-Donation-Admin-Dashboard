@@ -31,6 +31,13 @@ export class RewardsService {
     );
   }
 
+  scanReward(qrToken: string): Observable<any> {
+    return this.http.post<any>(
+      `${this.BASE_URL}/api/hospital/rewards/scan`,
+      { qrToken }
+    );
+  }
+
   /** DELETE /api/admin/rewards/{id} — AppAdmin */
   delete(id: number): Observable<void> {
     return this.http.delete<void>(

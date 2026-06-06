@@ -36,7 +36,7 @@ export class RequestsService {
   /**
    * GET /api/requests/{id}/pickup-qr
    * Role: HospitalAdmin
-   * Generates a QR code for a specific blood request.
+   * Generates a QR code for a specific blood request. (Still keyed by id.)
    */
   getPickupQr(requestId: number): Observable<QrTokenResponse> {
     return this.http.get<QrTokenResponse>(
@@ -45,16 +45,15 @@ export class RequestsService {
   }
 
   /**
-   * POST /api/requests/{id}/pickup-scan
+   * POST /api/requests/pickup-scan
    * Role: HospitalAdmin
-   * Validates the donor QR token and confirms blood pickup.
+   * Validates the QR token and confirms blood pickup.
+   * The server resolves the request from the token, so no id is needed.
+   * Body: { qrToken }
    */
-  pickupScan(
-    requestId: number,
-    body: QrScanRequest
-  ): Observable<QrScanResponse> {
+  pickupScan(body: QrScanRequest): Observable<QrScanResponse> {
     return this.http.post<QrScanResponse>(
-      `${this.BASE_URL}/api/requests/${requestId}/pickup-scan`,
+      `${this.BASE_URL}/api/requests/pickup-scan`,
       body
     );
   }

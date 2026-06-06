@@ -1,168 +1,166 @@
+<p-toast position="top-right" />
+
 <section class="p-5 bg-[#f4f1ed]">
 
-    <!-- HEADER -->
-    <div class="flex items-start justify-between mb-5">
-      <div>
-        <h1 class="page-title">Blood inventory</h1>
-        <p class="text-xs text-gray-400 mt-1">Track and manage blood stock levels</p>
+  <!-- HEADER -->
+  <div class="flex items-start justify-between mb-5">
+    <div>
+      <h1 class="page-title">Blood inventory</h1>
+      <p class="text-xs text-gray-400 mt-1">Track and manage blood stock levels</p>
+    </div>
+    <button class="btn-primary" (click)="showDialog()">
+      <i class="fa-solid fa-plus text-xs"></i>
+      Add Blood Bag
+    </button>
+  </div>
+
+  <!-- ADD BAG DIALOG -->
+  <p-dialog
+    header="Add new blood bag"
+    [modal]="true"
+    [(visible)]="visible"
+    [style]="{ width: '22rem' }"
+    [draggable]="false"
+    [resizable]="false"
+  >
+    <div class="flex flex-col gap-4 pt-2">
+      <div class="flex flex-col gap-1.5">
+        <label class="text-[11px] font-medium text-[#888780] uppercase tracking-wider">Blood type</label>
+        <input
+          pInputText
+          placeholder="e.g. A+"
+          class="w-full text-sm py-2.5 px-3 border border-[#ede8e2] rounded-[10px] outline-none focus:border-[#A32D2D]"
+        />
       </div>
-      <div class="flex items-center gap-2">
-        <button (click)="reloadData()"
-                class="inline-flex items-center gap-2 bg-white border border-[#ede8e2]
-                       text-gray-600 text-xs font-medium px-3.5 py-2 rounded-lg cursor-pointer
-                       hover:bg-[#f9f6f2] transition-all duration-200">
-          <i class="fa-solid fa-rotate text-xs" [class.animate-spin]="loading"></i>
-          Reload data
+      <div class="flex flex-col gap-1.5">
+        <label class="text-[11px] font-medium text-[#888780] uppercase tracking-wider">Quantity (units)</label>
+        <input
+          pInputText
+          type="number"
+          placeholder="e.g. 10"
+          class="w-full text-sm py-2.5 px-3 border border-[#ede8e2] rounded-[10px] outline-none focus:border-[#A32D2D]"
+        />
+      </div>
+      <div class="flex justify-end gap-2 pt-2">
+        <button
+          type="button"
+          (click)="visible = false"
+          class="px-4 py-2 text-sm rounded-[9px] border border-[#ede8e2] text-[#888780]
+                 hover:bg-[#f7f5f3] transition-colors cursor-pointer">
+          Cancel
         </button>
-        <button (click)="showDialog()"
-                class="inline-flex items-center gap-2 bg-[#A32D2D] hover:bg-[#8f2626]
-                       text-white text-xs font-medium px-3.5 py-2 rounded-lg cursor-pointer
-                       transition-all duration-200 border-none">
-          <i class="fa-solid fa-plus text-xs"></i>
-          Add blood bag
+        <button
+          type="button"
+          (click)="visible = false"
+          class="btn-primary">
+          Save bag
         </button>
       </div>
     </div>
-  
-    <!-- STAT CARDS -->
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-2.5 mb-3">
-  
-      <div class="stat-card bg-white p-5 rounded-[14px] border border-[#ede8e2]
-                  hover:-translate-y-0.5 transition-all duration-200
-                  hover:shadow-[0_6px_20px_rgba(163,45,45,0.09)]">
-        <div class="w-10 h-10 rounded-[10px] bg-[#E6F1FB] flex items-center justify-center mb-3">
-          <i class="fa-solid fa-droplet text-[#185FA5]"></i>
-        </div>
-        <p class="stat-num text-[28px] font-medium text-gray-900" style="font-family:'Fraunces',serif">234</p>
-        <p class="text-[11px] text-gray-400 uppercase tracking-wider mt-1">Total units</p>
-        <div class="h-[3px] bg-[#f0ebe5] rounded-full overflow-hidden mt-4">
-          <div class="h-full bg-[#378ADD] rounded-full" style="width:100%"></div>
+  </p-dialog>
+
+  <!-- SUMMARY CARDS -->
+  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-2.5 mb-3">
+
+    <!-- Total Units -->
+    <div class="stat-card">
+      <div class="flex items-center justify-between mb-3">
+        <div class="stat-icon" style="background:#FCEBEB">
+          <i class="fa-solid fa-droplet" style="color:#A32D2D"></i>
         </div>
       </div>
-  
-      <div class="stat-card bg-white p-5 rounded-[14px] border border-[#97C459]
-                  hover:-translate-y-0.5 transition-all duration-200
-                  hover:shadow-[0_6px_20px_rgba(163,45,45,0.09)]">
-        <div class="w-10 h-10 rounded-[10px] bg-[#EAF3DE] flex items-center justify-center mb-3">
-          <i class="fa-solid fa-circle-check text-[#3B6D11]"></i>
-        </div>
-        <p class="text-[28px] font-medium text-[#3B6D11]" style="font-family:'Fraunces',serif">165</p>
-        <p class="text-[11px] text-gray-400 uppercase tracking-wider mt-1">Available</p>
-        <div class="h-[3px] bg-[#f0ebe5] rounded-full overflow-hidden mt-4">
-          <div class="h-full bg-[#639922] rounded-full" style="width:70%"></div>
-        </div>
+      <p class="stat-num">{{ statTotalUnits }}</p>
+      <p class="stat-label">Total units</p>
+      <div class="stat-bar">
+        <div class="stat-bar-fill" style="width:100%;background:#A32D2D"></div>
       </div>
-  
-      <div class="stat-card bg-white p-5 rounded-[14px] border border-[#EF9F27]
-                  hover:-translate-y-0.5 transition-all duration-200
-                  hover:shadow-[0_6px_20px_rgba(163,45,45,0.09)]">
-        <div class="w-10 h-10 rounded-[10px] bg-[#FAEEDA] flex items-center justify-center mb-3">
-          <i class="fa-solid fa-triangle-exclamation text-[#854F0B]"></i>
-        </div>
-        <p class="text-[28px] font-medium text-[#854F0B]" style="font-family:'Fraunces',serif">34</p>
-        <p class="text-[11px] text-gray-400 uppercase tracking-wider mt-1">Low stock</p>
-        <div class="h-[3px] bg-[#f0ebe5] rounded-full overflow-hidden mt-4">
-          <div class="h-full bg-[#BA7517] rounded-full" style="width:34%"></div>
-        </div>
-      </div>
-  
-      <div class="stat-card bg-white p-5 rounded-[14px] border border-[#F09595]
-                  hover:-translate-y-0.5 transition-all duration-200
-                  hover:shadow-[0_6px_20px_rgba(163,45,45,0.09)]">
-        <div class="w-10 h-10 rounded-[10px] bg-[#FCEBEB] flex items-center justify-center mb-3">
-          <i class="fa-solid fa-circle-xmark text-[#A32D2D]"></i>
-        </div>
-        <p class="text-[28px] font-medium text-[#A32D2D]" style="font-family:'Fraunces',serif">5</p>
-        <p class="text-[11px] text-gray-400 uppercase tracking-wider mt-1">Critical</p>
-        <div class="h-[3px] bg-[#f0ebe5] rounded-full overflow-hidden mt-4">
-          <div class="h-full bg-[#E24B4A] rounded-full" style="width:5%"></div>
-        </div>
-      </div>
-  
     </div>
-  
-    <!-- TOOLBAR -->
-    <div class="flex items-center justify-between mb-2.5">
-      <p class="text-sm font-medium text-gray-900">
-        Inventory records
-        <span class="text-xs text-gray-400 font-normal ml-1">
-          {{ bloodInventory?.length || 0 }} entries
-        </span>
-      </p>
-    </div>
-  
-    <!-- TABLE -->
-    <div class="bg-white rounded-[14px] border border-[#ede8e2] overflow-hidden">
-      <p-table [value]="bloodInventory" [tableStyle]="{'min-width':'50rem'}">
-        <ng-template #header>
-          <tr>
-            <th>Blood type</th>
-            <th>Quantity</th>
-            <th>Expiry date</th>
-            <th>Status</th>
-          </tr>
-        </ng-template>
-        <ng-template #body let-bag>
-          <tr>
-            <td>
-              <span class="bg-[#FCEBEB] text-[#791F1F] px-3 py-1 rounded-full
-                           text-xs font-medium inline-block">
-                {{ bag.bloodType }}
-              </span>
-            </td>
-            <td class="font-medium text-gray-800!">{{ bag.quantity }} units</td>
-            <td class="text-gray-400!">{{ bag.expirtionDate }}</td>
-            <td>
-              <span class="text-[11px] font-medium px-2.5 py-1 rounded-full inline-block">
-                {{ bag.status }}
-              </span>
-            </td>
-          </tr>
-        </ng-template>
-      </p-table>
-    </div>
-  
-    <!-- DIALOG -->
-    <p-dialog header=" " [modal]="true" [(visible)]="visible" [style]="{width:'26rem'}"
-              [draggable]="false" [resizable]="false">
-      <div class="px-1 pb-2">
-        <p class="text-base font-medium text-gray-900 mb-1">Add new blood bag</p>
-        <p class="text-xs text-gray-400 mb-5">Enter the blood bag details below.</p>
-  
-        <label class="text-[11px] font-medium text-gray-400 uppercase tracking-wider mb-2 block">
-          Blood type
-        </label>
-        <input pInputText
-               class="w-full border border-[#ede8e2] rounded-[9px] px-3 py-2.5 text-sm
-                      outline-none focus:border-[#A32D2D] transition-colors mb-4"
-               placeholder="e.g. A+, O−, AB+"
-               autocomplete="off">
-  
-        <label class="text-[11px] font-medium text-gray-400 uppercase tracking-wider mb-2 block">
-          Quantity (units)
-        </label>
-        <input pInputText type="number"
-               class="w-full border border-[#ede8e2] rounded-[9px] px-3 py-2.5 text-sm
-                      outline-none focus:border-[#A32D2D] transition-colors"
-               placeholder="e.g. 50"
-               autocomplete="off">
-      </div>
-      <ng-template #footer>
-        <div class="flex justify-end gap-2 pt-2">
-          <button (click)="visible = false"
-                  class="px-4 py-2 text-xs font-medium text-gray-600 bg-white border
-                         border-[#ede8e2] rounded-lg cursor-pointer hover:bg-[#f9f6f2]
-                         transition-colors">
-            Cancel
-          </button>
-          <button (click)="saveBag()"
-                  class="px-4 py-2 text-xs font-medium text-white bg-[#A32D2D]
-                         border-none rounded-lg cursor-pointer hover:bg-[#8f2626]
-                         transition-colors">
-            Save bag
-          </button>
+
+    <!-- High (was Available) -->
+    <div class="stat-card">
+      <div class="flex items-center justify-between mb-3">
+        <div class="stat-icon" style="background:#EAF3DE">
+          <i class="fa-solid fa-circle-check" style="color:#3B6D11"></i>
         </div>
+      </div>
+      <p class="stat-num">{{ statHigh }}</p>
+      <p class="stat-label">High stock</p>
+      <div class="stat-bar">
+        <div class="stat-bar-fill" style="width:70%;background:#639922"></div>
+      </div>
+    </div>
+
+    <!-- Low -->
+    <div class="stat-card">
+      <div class="flex items-center justify-between mb-3">
+        <div class="stat-icon" style="background:#FAEEDA">
+          <i class="fa-solid fa-triangle-exclamation" style="color:#B26A00"></i>
+        </div>
+      </div>
+      <p class="stat-num">{{ statLow }}</p>
+      <p class="stat-label">Low stock</p>
+      <div class="stat-bar">
+        <div class="stat-bar-fill" style="width:45%;background:#C98A1E"></div>
+      </div>
+    </div>
+
+    <!-- Critical -->
+    <div class="stat-card">
+      <div class="flex items-center justify-between mb-3">
+        <div class="stat-icon" style="background:#FCEBEB">
+          <i class="fa-solid fa-circle-exclamation" style="color:#791F1F"></i>
+        </div>
+      </div>
+      <p class="stat-num">{{ statCritical }}</p>
+      <p class="stat-label">Critical</p>
+      <div class="stat-bar">
+        <div class="stat-bar-fill" style="width:30%;background:#A32D2D"></div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- TABLE -->
+  <div class="data-table mt-3">
+    <p-table
+      [value]="bloodInventory"
+      [tableStyle]="{ 'min-width': '40rem' }"
+      [loading]="isLoading"
+    >
+      <ng-template #header>
+        <tr>
+          <th>BLOOD TYPE</th>
+          <th>QUANTITY</th>
+          <th>NEAREST EXPIRY</th>
+          <th>STATUS</th>
+        </tr>
       </ng-template>
-    </p-dialog>
-  
-  </section>
+      <ng-template #body let-bag>
+        <tr class="cursor-pointer" [class.opacity-50]="bag.status === 'Empty'">
+          <td><span class="bt-pill">{{ bag.bloodType }}</span></td>
+          <td class="font-medium text-gray-700!">
+            {{ bag.quantity > 0 ? bag.quantity + ' units' : '—' }}
+          </td>
+          <td class="text-gray-400!">
+            {{ bag.nearestExpiryDate === '—'
+                ? '—'
+                : (bag.nearestExpiryDate | date:'mediumDate') }}
+          </td>
+          <td>
+            <span class="status-pill" [ngClass]="getStatusClass(bag.status)">
+              {{ bag.status }}
+            </span>
+          </td>
+        </tr>
+      </ng-template>
+      <ng-template #emptymessage>
+        <tr>
+          <td colspan="4" class="text-center py-8 text-gray-400">
+            No inventory data available.
+          </td>
+        </tr>
+      </ng-template>
+    </p-table>
+  </div>
+
+</section>

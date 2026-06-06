@@ -1,103 +1,107 @@
 import { Component, OnInit, inject } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { Dialog } from 'primeng/dialog';
 import { InputTextModule } from 'primeng/inputtext';
-import { FormsModule } from '@angular/forms';
 import { ButtonModule } from 'primeng/button';
-import { RatingModule } from 'primeng/rating';
 import { TableModule } from 'primeng/table';
-import { TagModule } from 'primeng/tag';
+import { ToastModule } from 'primeng/toast';
+import { MessageService } from 'primeng/api';
+
+import { InventoryService } from '../../../../Core/Services/inventory';
+import { BloodInventoryItem } from '../../../../Core/interface/api-models';
+
+/** All eight ABO/Rh blood types — always shown, even if the hospital
+ *  has no bags for that type (filled with quantity 0). */
+const ALL_BLOOD_TYPES = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'] as const;
 
 @Component({
   selector: 'app-blood-inventory',
-  imports: [ButtonModule, RatingModule, TableModule, TagModule, FormsModule, Dialog, InputTextModule],
+  standalone: true,
+  imports: [
+    CommonModule,
+    ButtonModule,
+    TableModule,
+    FormsModule,
+    Dialog,
+    InputTextModule,
+    ToastModule,
+  ],
+  providers: [MessageService],
   templateUrl: './blood-inventory.html',
   styleUrl: './blood-inventory.css',
 })
-export class BloodInventory {
+export class BloodInventory implements OnInit {
+  private inventoryService = inject(InventoryService);
+  private messageService = inject(MessageService);
 
-  loading: boolean = false;
-  visible: boolean = false;
-  // FAKE BLOOD_INVENTORY DATA
-  bloodInventory = [
-    { 
-      bloodType: 'A+',
-      quantity: 45,
-      status: 'AVAILABLE',
-      expirtionDate: '2024-12-31' 
-    },
-    { 
-      bloodType: 'A-',
-      quantity: 15,
-      status: 'LOW',
-      expirtionDate: '2024-12-31' 
-    },
-    { 
-      bloodType: 'B+',
-      quantity: 25,
-      status: 'LOW',
-      expirtionDate: '2024-12-31' 
-    },
-    { 
-      bloodType: 'B-',
-      quantity: 58,
-      status: 'AVAILABLE',
-      expirtionDate: '2024-12-31' 
-    },
-    { 
-      bloodType: 'AB-',
-      quantity: 24,
-      status: 'AVAILABLE',
-      expirtionDate: '2024-12-31' 
-    },
-    { 
-      bloodType: 'AB+',
-      quantity: 30,
-      status: 'LOW',
-      expirtionDate: '2024-12-31' 
-    },
-    { 
-      bloodType: 'O+',
-      quantity: 5,
-      status: 'CRITICAL',
-      expirtionDate: '2024-12-31' 
-    },
-    { 
-      bloodType: 'O-',
-      quantity: 10,
-      status: 'CRITICAL',
-      expirtionDate: '2024-12-31' 
-    },
-  ]
+  /** Always 8 rows — one per blood type. Missing types get quantity 0. */
+  bloodInventory: BloodInventoryItem[] = [];
+  isLoading = false;
+  visible = false;
 
-  reloadData(): void {
-    this.loading = true;
-    // this.inventoryService.getInventory().subscribe(data => {
-    //   this.bloodInventory = data;
-    //   this.loading = false;
-    // });
-    setTimeout(() => this.loading = false, 800); // remove when API is ready
+  // ─── Stats from res.dashboard ─────────────────────────────────────────────────
+  statTotalUnits = 0;
+  statHigh       = 0;
+  statLow        = 0;
+  statCritical   = 0;
+
+  ngOnInit(): void {
+    this.loadInventory();
   }
-  
-  saveBag(): void {
-    // this.inventoryService.addBag(this.newBag).subscribe(...)
-    this.visible = false;
+
+  loadInventory(): void {
+    this.isLoading = true;
+    this.inventoryService.getHospitalInventory().subscribe({
+      next: (res: any) => {
+        const dash = res?.dashboard ?? {};
+        this.statTotalUnits = dash.totalUnits ?? 0;
+        this.statHigh       = dash.high      ?? 0;
+        this.statLow        = dash.low       ?? 0;
+        this.statCritical   = dash.critical  ?? 0;
+
+        const raw: BloodInventoryItem[] = Array.isArray(res?.inventory)
+          ? res.inventory
+          : [];
+
+        this.bloodInventory = this.mergeAllTypes(raw);
+        this.isLoading = false;
+      },
+      error: (err) => {
+        this.isLoading = false;
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: err?.error?.message ?? 'Failed to load blood inventory.',
+          life: 4000,
+        });
+      },
+    });
   }
-  
-  getSeverity(status: string): string {
-    switch (status) {
-      case 'Available': return 'success';
-      case 'Low Stock':  return 'warn';
-      case 'Critical':   return 'danger';
-      case 'Expired':    return 'secondary';
-      default:           return 'info';
+
+  /** Merges API data into the full 8-type list. Missing types get quantity 0. */
+  private mergeAllTypes(data: BloodInventoryItem[]): BloodInventoryItem[] {
+    return ALL_BLOOD_TYPES.map(type =>
+      data.find(b => b.bloodType?.replace('_', '') === type) ?? ({
+        bloodType: type,
+        quantity: 0,
+        nearestExpiryDate: '—',
+        status: 'Empty',
+      } as BloodInventoryItem)
+    );
+  }
+
+  /** Maps status → .status-pill modifier. Status is title-case from API. */
+  getStatusClass(status: string): string {
+    switch ((status ?? '').toLowerCase()) {
+      case 'high':     return 's-approved';
+      case 'low':      return 's-pending';
+      case 'critical': return 's-emergency';
+      default:         return 's-inactive';
     }
   }
-    showDialog() {
-        this.visible = true;
-    }
 
-
-
-
-
+  showDialog(): void {
+    this.visible = true;
+  }
 }

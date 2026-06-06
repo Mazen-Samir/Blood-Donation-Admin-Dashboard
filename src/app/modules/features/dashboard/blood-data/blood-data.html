@@ -1,79 +1,204 @@
+<p-toast position="top-right" />
+
 <section class="p-5 bg-[#f4f1ed] h-screen flex flex-col items-fit-start">
-    <!-- HEADER -->
-    <div class="flex items-start justify-between mb-5">
-      <div>
-        <h1 class="page-title">Collect blood data</h1>
-        <p class="text-xs text-gray-400 mt-1">View and analyze blood donation records</p>
+  <!-- HEADER -->
+  <div class="flex items-start justify-between mb-5">
+    <div>
+      <h1 class="page-title">Collect blood data</h1>
+      <p class="text-xs text-gray-400 mt-1">View and analyze blood donation records</p>
+    </div>
+  </div>
+
+  <!-- STAT CARDS -->
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-2.5 mb-3">
+    <div class="stat-card">
+      <div class="flex items-center justify-between mb-3">
+        <div class="stat-icon" style="background: #fcebeb">
+          <i class="fa-solid fa-droplet" style="color: #a32d2d"></i>
+        </div>
+      </div>
+      <p class="stat-num">{{ totalDonations }}</p>
+      <p class="stat-label">Total donations</p>
+      <div class="stat-bar">
+        <div class="stat-bar-fill" style="width: 30%; background: #a32d2d"></div>
       </div>
     </div>
-  
-    <!-- STAT CARDS -->
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-2.5 mb-3">
-  
-      <div class="stat-card">
-        <div class="flex items-center justify-between mb-3">
-          <div class="stat-icon" style="background:#FCEBEB">
-            <i class="fa-solid fa-droplet" style="color:#A32D2D"></i>
-          </div>
-        </div>
-        <p class="stat-num">{{ totalDonations }}</p>
-        <p class="stat-label">Total donations</p>
-        <div class="stat-bar">
-          <div class="stat-bar-fill" style="width:30%;background:#A32D2D"></div>
+
+    <div class="stat-card">
+      <div class="flex items-center justify-between mb-3">
+        <div class="stat-icon" style="background: #e6f1fb">
+          <i class="fa-solid fa-flask" style="color: #185fa5"></i>
         </div>
       </div>
-  
-      <div class="stat-card">
-        <div class="flex items-center justify-between mb-3">
-          <div class="stat-icon" style="background:#E6F1FB">
-            <i class="fa-solid fa-flask" style="color:#185FA5"></i>
-          </div>
-        </div>
-        <p class="stat-num">{{ totalQuantity | number }} <span class="text-sm text-gray-400 font-normal">ml</span></p>
-        <p class="stat-label">Total volume</p>
-        <div class="stat-bar">
-          <div class="stat-bar-fill" style="width:65%;background:#378ADD"></div>
-        </div>
+      <p class="stat-num">
+        {{ totalQuantity | number }} <span class="text-sm text-gray-400 font-normal">ml</span>
+      </p>
+      <p class="stat-label">Total volume</p>
+      <div class="stat-bar">
+        <div class="stat-bar-fill" style="width: 65%; background: #378add"></div>
       </div>
-  
-      <div class="stat-card">
-        <div class="flex items-center justify-between mb-3">
-          <div class="stat-icon" style="background:#EAF3DE">
-            <i class="fa-solid fa-chart-bar" style="color:#3B6D11"></i>
-          </div>
-        </div>
-        <p class="stat-num">{{ averagePerDonation | number }} <span class="text-sm text-gray-400 font-normal">Bag</span></p>
-        <p class="stat-label">Average per donation</p>
-        <div class="stat-bar">
-          <div class="stat-bar-fill" style="width:46%;background:#639922"></div>
-        </div>
-      </div>
-  
     </div>
-  
-    <!-- TABLE -->
-    <div class="data-table">
-      <p-table [value]="blood_data" [tableStyle]="{'min-width':'60rem'}"
-               [paginator]="true" [rows]="6" [rowsPerPageOptions]="[5,10,20]">
-        <ng-template #header>
-          <tr>
-            <th>Donation ID</th>
-            <th>Donor name</th>
-            <th>Date</th>
-            
-            <th>Blood type</th>
-            <th>Quantity (bag)</th>
-          </tr>
-        </ng-template>
-        <ng-template #body let-blood>
-          <tr class="cursor-pointer bg-gray-300">
-            <td class="font-medium text-gray-900!">R-{{ blood.id }}</td>
-            <td class="text-gray-700">{{ blood.donorName }}</td>
-            <td class="text-gray-400">{{ blood.createdAt | date:'short' }}</td>
-            <td><span class="bt-pill">{{ blood.bloodType }}</span></td>
-            <td class="text-gray-400">{{ blood.quantity }}</td>
-          </tr>
-        </ng-template>
-      </p-table>
+
+    <div class="stat-card">
+      <div class="flex items-center justify-between mb-3">
+        <div class="stat-icon" style="background: #eaf3de">
+          <i class="fa-solid fa-chart-bar" style="color: #3b6d11"></i>
+        </div>
+      </div>
+      <p class="stat-num">
+        {{ averagePerDonation | number }} <span class="text-sm text-gray-400 font-normal">Bag</span>
+      </p>
+      <p class="stat-label">Average per donation</p>
+      <div class="stat-bar">
+        <div class="stat-bar-fill" style="width: 46%; background: #639922"></div>
+      </div>
     </div>
-  </section>
+  </div>
+
+  <!-- TABLE -->
+  <div class="data-table">
+    <p-table
+      [value]="blood_data"
+      [tableStyle]="{ 'min-width': '60rem' }"
+      [paginator]="true"
+      [rows]="6"
+      [rowsPerPageOptions]="[5, 10, 20]"
+    >
+      <ng-template #header>
+        <tr>
+          <th>Donation ID</th>
+          <th>Donor name</th>
+          <th>Date</th>
+          <th>Blood type</th>
+          <th>Status</th>
+          <th>Type</th>
+          <th class="text-center!">QR</th>
+        </tr>
+      </ng-template>
+      <ng-template #body let-blood>
+        <tr class="cursor-pointer">
+          <td class="font-medium text-gray-900!">D-{{ blood.id }}</td>
+          <td class="text-gray-700">{{ blood.donorName }}</td>
+          <td class="text-gray-400">{{ blood.createdAt | date: 'short' }}</td>
+          <td>
+            <span class="bt-pill">{{ blood.bloodType }}</span>
+          </td>
+          <td class="text-gray-400">
+            @if (blood.status === 'pending') {
+              <span class="bg-yellow-100 text-yellow-800 px-2 py-1 rounded-full text-xs"
+                >Pending</span
+              >
+            } @else if (blood.status === 'Confirmed') {
+              <span class="bg-green-100 text-green-800 px-2 py-1 rounded-full text-xs"
+                >Completed</span
+              >
+            } @else if (blood.status === 'Withdrawn') {
+              <span class="bg-red-100 text-red-800 px-2 py-1 rounded-full text-xs">Withdrawn</span>
+            } @else {
+              <span class="bg-gray-100 text-gray-800 px-2 py-1 rounded-full text-xs">Unknown</span>
+            }
+          </td>
+
+          <td class="text-center!">
+            @if (blood.bloodRequestId == null) {
+              <span class="bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-xs"
+                >General</span
+              >
+            } @else {
+              <span class="bg-purple-100 text-purple-800 px-2 py-1 rounded-full text-xs"
+                >Requested</span
+              >
+            }
+          </td>
+
+          <td class="text-center!">
+            @if (blood.bloodRequestId == null) {
+              <button
+                type="button"
+                (click)="openQr(blood)"
+                title="Show pick-up QR"
+                class="w-8 h-8 rounded-md inline-flex items-center justify-center border border-[#ede8e2] text-[#A32D2D] hover:bg-[#FCEBEB] transition-colors cursor-pointer"
+              >
+                <i class="fa-solid fa-qrcode text-sm"></i>
+              </button>
+            } @else {
+              N/A
+            }
+          </td>
+
+        </tr>
+      </ng-template>
+    </p-table>
+  </div>
+</section>
+
+<!-- PICK-UP QR DIALOG -->
+<p-dialog
+  [(visible)]="qrDialogVisible"
+  [modal]="true"
+  [draggable]="false"
+  [resizable]="false"
+  [dismissableMask]="true"
+  [style]="{ width: '340px' }"
+  (onHide)="stopQrRefresh()"
+  [header]="qrDonationId ? 'Donation pick-up QR · #' + qrDonationId : 'Donation pick-up QR'"
+>
+  <div class="flex flex-col items-center gap-4 py-2">
+    @if (qrLoading) {
+      <div class="py-12 flex flex-col items-center gap-2 text-[#888780]">
+        <i class="fa-solid fa-spinner fa-spin text-2xl"></i>
+        <span class="text-xs">Loading QR…</span>
+      </div>
+    } @else if (qrRefreshing) {
+      <div class="py-12 flex flex-col items-center gap-2 text-[#888780]">
+        <i class="fa-solid fa-spinner fa-spin text-2xl"></i>
+        <span class="text-xs">Refreshing QR…</span>
+      </div>
+    } @else if (qrImageBase64) {
+      <img
+        [src]="'data:image/png;base64,' + qrImageBase64"
+        alt="Pick-up QR"
+        class="w-[220px] h-[220px] rounded-lg"
+      />
+    } @else if (qrToken) {
+      <qrcode
+        [qrdata]="qrToken"
+        [width]="220"
+        [margin]="2"
+        [errorCorrectionLevel]="'M'"
+        cssClass="rounded-lg"
+      ></qrcode>
+    } @else {
+      <p class="text-xs text-[#888780] py-12">No QR available for this donation.</p>
+    }
+
+    @if (!qrLoading && qrToken) {
+      <div class="w-full">
+        <p class="text-[11px] font-medium text-[#888780] uppercase tracking-wider mb-1">Token</p>
+        <code
+          class="block text-[11px] break-all bg-[#f7f5f3] border border-[#f0ebe5] rounded-md p-2 text-gray-600"
+        >
+          {{ qrToken }}
+        </code>
+      </div>
+
+      <div class="w-full flex items-center justify-between pt-1">
+        <span class="text-[11px] text-[#888780] flex items-center gap-1.5">
+          @if (qrRefreshing) {
+            <i class="fa-solid fa-spinner fa-spin"></i> Refreshing…
+          } @else {
+            <i class="fa-solid fa-rotate"></i> Auto-refreshes every 14 min
+          }
+        </span>
+        <button
+          type="button"
+          (click)="refreshQr()"
+          [disabled]="qrRefreshing"
+          class="text-[11px] font-medium text-[#A32D2D] hover:underline disabled:opacity-50 cursor-pointer"
+        >
+          Refresh now
+        </button>
+      </div>
+    }
+  </div>
+</p-dialog>
