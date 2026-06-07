@@ -11,59 +11,57 @@
 
   <!-- SUMMARY CARDS -->
   <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-2.5 mb-3">
-
     <div class="stat-card">
       <div class="flex items-center justify-between mb-3">
-        <div class="stat-icon" style="background:#E6F1FB">
-          <i class="fa-solid fa-clipboard-list" style="color:#185FA5"></i>
+        <div class="stat-icon" style="background: #e6f1fb">
+          <i class="fa-solid fa-clipboard-list" style="color: #185fa5"></i>
         </div>
       </div>
       <p class="stat-num">{{ totalRecords }}</p>
       <p class="stat-label">Total requests</p>
       <div class="stat-bar">
-        <div class="stat-bar-fill" style="width:100%;background:#378ADD"></div>
+        <div class="stat-bar-fill" style="width: 100%; background: #378add"></div>
       </div>
     </div>
 
     <div class="stat-card">
       <div class="flex items-center justify-between mb-3">
-        <div class="stat-icon" style="background:#FAEEDA">
-          <i class="fa-solid fa-clock" style="color:#B26A00"></i>
+        <div class="stat-icon" style="background: #faeeda">
+          <i class="fa-solid fa-clock" style="color: #b26a00"></i>
         </div>
       </div>
       <p class="stat-num">{{ pendingCount }}</p>
       <p class="stat-label">Pending</p>
       <div class="stat-bar">
-        <div class="stat-bar-fill" style="width:45%;background:#C98A1E"></div>
+        <div class="stat-bar-fill" style="width: 45%; background: #c98a1e"></div>
       </div>
     </div>
 
     <div class="stat-card">
       <div class="flex items-center justify-between mb-3">
-        <div class="stat-icon" style="background:#FCEBEB">
-          <i class="fa-solid fa-triangle-exclamation" style="color:#A32D2D"></i>
+        <div class="stat-icon" style="background: #fcebeb">
+          <i class="fa-solid fa-triangle-exclamation" style="color: #a32d2d"></i>
         </div>
       </div>
       <p class="stat-num">{{ emergencyCount }}</p>
       <p class="stat-label">Emergency</p>
       <div class="stat-bar">
-        <div class="stat-bar-fill" style="width:30%;background:#A32D2D"></div>
+        <div class="stat-bar-fill" style="width: 30%; background: #a32d2d"></div>
       </div>
     </div>
 
     <div class="stat-card">
       <div class="flex items-center justify-between mb-3">
-        <div class="stat-icon" style="background:#EAF3DE">
-          <i class="fa-solid fa-circle-check" style="color:#3B6D11"></i>
+        <div class="stat-icon" style="background: #eaf3de">
+          <i class="fa-solid fa-circle-check" style="color: #3b6d11"></i>
         </div>
       </div>
       <p class="stat-num">{{ completedCount }}</p>
       <p class="stat-label">Completed / Approved</p>
       <div class="stat-bar">
-        <div class="stat-bar-fill" style="width:70%;background:#639922"></div>
+        <div class="stat-bar-fill" style="width: 70%; background: #639922"></div>
       </div>
     </div>
-
   </div>
 
   <!-- TABLE -->
@@ -95,24 +93,39 @@
         <tr class="cursor-pointer">
           <td class="font-bold text-gray-900!">R-{{ request.id }}</td>
           <td class="font-medium text-gray-700!">{{ request.patientName }}</td>
-          <td><span class="bt-pill">{{ request.bloodType }}</span></td>
+          <td>
+            <span class="bt-pill">{{ request.bloodType }}</span>
+          </td>
           <td class="text-gray-500!">{{ request.quantity }} Units</td>
-          <td class="text-gray-400!">{{ request.createdAt | date:'short' }}</td>
+          <td class="text-gray-400!">{{ request.createdAt | date: 'short' }}</td>
           <td>
             <span class="status-pill" [ngClass]="getStatusClass(request.status)">
               {{ request.status }}
             </span>
           </td>
-          <td class="text-center!">
-            <button
+          @if (request.status === 'Fulfilled') {
+            <td class="text-center!">
+              <button
+                type="button"
+                (click)="openQr(request)"
+                title="Show pick-up QR"
+                class="w-8 h-8 rounded-md inline-flex items-center justify-center border border-[#ede8e2] text-[#A32D2D] hover:bg-[#FCEBEB] transition-colors cursor-pointer"
+              >
+                <i class="fa-solid fa-qrcode text-sm"></i>
+              </button>
+            </td>
+          }
+          @else {
+            <td><button
               type="button"
+              disabled
               (click)="openQr(request)"
-              title="Show pick-up QR"
-              class="w-8 h-8 rounded-md inline-flex items-center justify-center border border-[#ede8e2]
-                     text-[#A32D2D] hover:bg-[#FCEBEB] transition-colors cursor-pointer">
+              title="QR Is only available for fulfilled requests"
+              class="w-8 h-8 cursor-not-allowed rounded-md inline-flex items-center justify-center border border-[#ede8e2] text-[#A32D2D] hover:bg-[#FCEBEB] transition-colors disabled:opacity-50"
+            >
               <i class="fa-solid fa-qrcode text-sm"></i>
-            </button>
-          </td>
+            </button></td>
+          }
         </tr>
       </ng-template>
       <ng-template #emptymessage>
@@ -167,7 +180,9 @@
     @if (!qrLoading && qrToken) {
       <div class="w-full">
         <p class="text-[11px] font-medium text-[#888780] uppercase tracking-wider mb-1">Token</p>
-        <code class="block text-[11px] break-all bg-[#f7f5f3] border border-[#f0ebe5] rounded-md p-2 text-gray-600">
+        <code
+          class="block text-[11px] break-all bg-[#f7f5f3] border border-[#f0ebe5] rounded-md p-2 text-gray-600"
+        >
           {{ qrToken }}
         </code>
       </div>
@@ -184,7 +199,8 @@
           type="button"
           (click)="refreshQr()"
           [disabled]="qrRefreshing"
-          class="text-[11px] font-medium text-[#A32D2D] hover:underline disabled:opacity-50 cursor-pointer">
+          class="text-[11px] font-medium text-[#A32D2D] hover:underline disabled:opacity-50 cursor-pointer"
+        >
           Refresh now
         </button>
       </div>

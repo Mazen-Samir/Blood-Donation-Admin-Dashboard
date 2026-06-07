@@ -1,166 +1,157 @@
-import { Component, OnInit,  PLATFORM_ID, ChangeDetectorRef, inject, effect } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
+import { CommonModule } from '@angular/common';
 import { ChartModule } from 'primeng/chart';
+
+import {
+  BloodUsageService,
+  BloodUsageResponse,
+  UsagePeriod,
+} from '../../../../Core/Services/blood-usage';
+
+const LABELS: Record<string, string> = {
+  APositive:  'A+',  ANegative:  'A−',
+  BPositive:  'B+',  BNegative:  'B−',
+  ABPositive: 'AB+', ABNegative: 'AB−',
+  OPositive:  'O+',  ONegative:  'O−',
+};
+
+const COLORS: string[] = [
+  '#A32D2D', '#378ADD', '#639922', '#BA7517',
+  '#534AB7', '#993556', '#0891B2', '#D97706',
+];
 
 @Component({
   selector: 'app-ai-prediction',
-  imports: [ChartModule],
+  standalone: true,
+  imports: [CommonModule, ChartModule],
   templateUrl: './ai-prediction.html',
   styleUrl: './ai-prediction.css',
 })
-export class AiPrediction implements OnInit{
+export class AiPrediction implements OnInit {
+  private bloodUsageService = inject(BloodUsageService);
 
-    // ********************** LINE CHART **********************
+  // Period filter state
+  selectedPeriod: UsagePeriod = '1month';
+  isLoading = false;
 
-    data: any;
-    options: any;
-    // platformId = inject(PLATFORM_ID);
-    // configService = inject(AppConfigService);
-    // designerService = inject(DesignerService);
+  readonly periods: { label: string; value: UsagePeriod }[] = [
+    { label: '1 day',     value: '1day'    },
+    { label: '7 days',    value: '7days'   },
+    { label: '1 month',   value: '1month'  },
+    { label: '3 months',  value: '3months' },
+    { label: '6 months',  value: '6months' },
+  ];
 
-    ngOnInit() {
-        this.initChart();
-        this.initBarChart();
-        console.log("AI Prediction Component Initialized");
-    }
+  // Exact variable names the HTML already binds to
+  data: any             = {};
+  options: any          = {};
+  barChart_data: any    = {};
+  barChart_options: any = {};
 
-    initChart() {
-        const documentStyle = getComputedStyle(document.documentElement);
-        const textColor = documentStyle.getPropertyValue('--p-black-color');
-        const textColorSecondary = documentStyle.getPropertyValue('--p-text-muted-color');
-        const surfaceBorder = documentStyle.getPropertyValue('--p-content-border-color');
-    
-        this.data = {
-            labels: ['January', 'February', 'March', 'April', 'May', 'June', 'July'],
-            datasets: [
-                {
-                    label: 'A+',
-                    data: [30, 35, 40, 40, 50, 47, 45],
-                    fill: false,
-                    borderColor: documentStyle.getPropertyValue('--p-blue-500'),
-                    tension: 0.4
-                },
-                {
-                    label: 'B+',
-                    data: [20, 30, 17, 35, 30, 26, 40],
-                    fill: false,
-                    borderColor: documentStyle.getPropertyValue('--p-green-500'),
-                    tension: 0.4
-                },
-                {
-                    label: 'O+',
-                    data: [15, 17, 20, 15, 25, 20, 29],
-                    fill: false,
-                    borderColor: documentStyle.getPropertyValue('--p-red-500'),
-                    tension: 0.4
-                },
-                {
-                    label: 'AB+',
-                    data: [7, 11, 10, 15, 13, 11, 25],
-                    fill: false,
-                    borderColor: documentStyle.getPropertyValue('--p-yellow-500'),
-                    tension: 0.4
-                },
-            ]
-        };
-    
-        this.options = {
-            maintainAspectRatio: false,
-            aspectRatio: 0.6,
-            plugins: {
-                legend: {
-                    labels: {
-                        color: textColor
-                    }
-                }
-            },
-            scales: {
-                x: {
-                    ticks: {
-                        color: textColorSecondary
-                    },
-                    grid: {
-                        // color: surfaceBorder,
-                        drawBorder: false
-                    }
-                },
-                y: {
-                    ticks: {
-                        color: textColorSecondary
-                    },
-                    grid: {
-                        // color: surfaceBorder,
-                        drawBorder: false
-                    }
-                }
-            }
-        };
+  ngOnInit(): void {
+    this.load();
+  }
 
-    }
+  selectPeriod(p: UsagePeriod): void {
+    this.selectedPeriod = p;
+    this.load();
+  }
 
-    // ********************** BAR CHART **********************
+  private load(): void {
+    this.isLoading = true;
+    this.bloodUsageService.getBloodUsage(this.selectedPeriod).subscribe({
+      next:  (res) => { this.buildCharts(res); this.isLoading = false; },
+      error: (err) => { console.error(err);    this.isLoading = false; },
+    });
+  }
 
-    barChart_data: any;
-    barChart_options: any;
-    // platformId = inject(PLATFORM_ID);
-    // configService = inject(AppConfigService);
-    // designerService = inject(DesignerService);
+  private buildCharts(res: BloodUsageResponse): void {
+    const mutedColor = '#9CA3AF';
+    const textColor  = '#374151';
 
-    initBarChart() {
-            const documentStyle = getComputedStyle(document.documentElement);
-            const textColor = documentStyle.getPropertyValue('--p-black-color');
-            const textColorSecondary = documentStyle.getPropertyValue('--p-text-muted-color');
-            const surfaceBorder = documentStyle.getPropertyValue('--p-content-border-color');
-        
-            this.barChart_data = {
-                labels: ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'],
-                datasets: [
-                    {
-                        label: 'Predicted Demand (units)',
-                        backgroundColor: documentStyle.getPropertyValue('--p-gray-500'),
-                        borderColor: documentStyle.getPropertyValue('--p-cyan-500'),
-                        data: [65, 59, 80, 85, 56, 55, 40, 50]
-                    },
-                ]
-            };
-        
-            this.barChart_options = {
-                maintainAspectRatio: false,
-                aspectRatio: 0.8,
-                plugins: {
-                    legend: {
-                        labels: {
-                            color: textColor
-                        }
-                    }
-                },
-                scales: {
-                    x: {
-                        ticks: {
-                            color: 'red',
-                            font: {
-                                size: 14,
-                                weight: 600
-                            }
-                        },
-                        grid: {
-                            // color: surfaceBorder,
-                            drawBorder: false
-                        }
-                    }, 
-                    y: {
-                        ticks: {
-                            color: textColorSecondary,
-                            font: {
-                                size: 14,
-                                weight: 500
-                            }
-                        },
-                        grid: {
-                            // color: surfaceBorder,
-                            drawBorder: false
-                        }
-                    }
-                }
-            };
-    }
+    const labels = res.bloodUsage.map((e) => LABELS[e.bloodType] ?? e.bloodType);
+    const units  = res.bloodUsage.map((e) => e.usedUnits);
+    const pcts   = res.bloodUsage.map((e) => e.percentage);
+    const bgs    = res.bloodUsage.map((_, i) => COLORS[i % COLORS.length]);
+
+    // ── "Line" chart — rendered as bar so all blood types show as columns,
+    //    not isolated dots. A true line needs multiple time points which
+    //    this single-snapshot API cannot provide.
+    this.data = {
+      labels,
+      datasets: [{
+        label:           'Units used',
+        data:            units,
+        backgroundColor: bgs,
+        borderColor:     bgs.map((c) => c + 'CC'),
+        borderWidth:     1,
+        borderRadius:    6,
+      }],
+    };
+
+    this.options = {
+      responsive:          true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            label: (ctx: any) => ` ${ctx.parsed.y} units`,
+          },
+        },
+      },
+      scales: {
+        x: {
+          ticks: { color: '#A32D2D', font: { size: 13, weight: '600' } },
+          grid:  { display: false },
+        },
+        y: {
+          beginAtZero: true,
+          ticks: { color: mutedColor, stepSize: 1 },
+          grid:  { color: '#f0ebe5' },
+          title: { display: true, text: 'Units used', color: mutedColor, font: { size: 11 } },
+        },
+      },
+    };
+
+    // ── Bar chart — percentage breakdown ─────────────────────────────────
+    this.barChart_data = {
+      labels,
+      datasets: [{
+        label:           'Usage %',
+        data:            pcts,
+        backgroundColor: '#A32D2D',
+        borderColor:     '#791F1F',
+        borderWidth:     1,
+        borderRadius:    6,
+      }],
+    };
+
+    this.barChart_options = {
+      responsive:          true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { labels: { color: textColor } },
+        tooltip: {
+          callbacks: { label: (ctx: any) => ` ${ctx.parsed.y}%` },
+        },
+      },
+      scales: {
+        x: {
+          ticks: { color: '#A32D2D', font: { size: 14, weight: '600' } },
+          grid:  { display: false },
+        },
+        y: {
+          beginAtZero: true,
+          max: 100,
+          ticks: {
+            color: mutedColor,
+            font:  { size: 14, weight: '500' },
+            callback: (v: any) => v + '%',
+          },
+          grid: { color: '#f0ebe5' },
+        },
+      },
+    };
+  }
 }

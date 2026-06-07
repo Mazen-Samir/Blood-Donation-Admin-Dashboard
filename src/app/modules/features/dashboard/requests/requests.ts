@@ -40,7 +40,7 @@ export class Requests implements OnInit, OnDestroy {
 
   // Pagination state (server-side, for the table)
   totalRecords = 0;
-  pageSize = 7;
+  pageSize = 6;
   currentPage = 1;
   first = 0; // bound to p-table [first] so the active page stays highlighted
 

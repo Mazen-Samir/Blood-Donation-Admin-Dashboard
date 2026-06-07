@@ -120,7 +120,21 @@
 
           <td class="text-center!">
             @if (blood.bloodRequestId == null) {
-              <button
+              @if (blood.status === 'Pending' || blood.status === 'Withdrawn') 
+              {
+                <button
+                type="button"
+                disabled
+                (click)="openQr(blood)"
+                title="QR has been withdrawn or still Pending donations"
+                class="w-8 h-8 cursor-not-allowed rounded-md inline-flex items-center justify-center border border-[#ede8e2] text-[#A32D2D] hover:bg-[#FCEBEB] transition-colors disabled:opacity-50"
+              >
+                <i class="fa-solid fa-qrcode text-sm"></i>
+              </button>
+              }
+              @else 
+              {
+                <button
                 type="button"
                 (click)="openQr(blood)"
                 title="Show pick-up QR"
@@ -128,8 +142,18 @@
               >
                 <i class="fa-solid fa-qrcode text-sm"></i>
               </button>
+              }
+              
             } @else {
-              N/A
+              <button
+              type="button"
+              disabled
+              (click)="openQr(blood)"
+              title="QR Is only available for General donations"
+              class="w-8 h-8 cursor-not-allowed rounded-md inline-flex items-center justify-center border border-[#ede8e2] text-[#A32D2D] hover:bg-[#FCEBEB] transition-colors disabled:opacity-50"
+            >
+              <i class="fa-solid fa-qrcode text-sm"></i>
+            </button>
             }
           </td>
         </tr>
