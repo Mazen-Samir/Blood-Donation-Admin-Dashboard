@@ -6,7 +6,7 @@ import { TableModule } from 'primeng/table';
 import { TagModule } from 'primeng/tag';
 import { ToastModule } from 'primeng/toast';
 import { DialogModule } from 'primeng/dialog';
-import { MessageService } from 'primeng/api';
+import { MessageService, LazyLoadEvent } from 'primeng/api';
 import { QRCodeComponent } from 'angularx-qrcode';
 
 import { DonationsService } from '../../../../Core/Services/donations';
@@ -43,6 +43,7 @@ export class BloodData implements OnInit, OnDestroy {
   currentPage = 1;
   totalDonations = 0;
   totalQuantity = 0;
+  averagePerDonation = 0;
 
   // ─── Pick-up QR dialog ────────────────────────────────────────────────────────
   qrDialogVisible = false;
@@ -56,36 +57,47 @@ export class BloodData implements OnInit, OnDestroy {
   private readonly QR_REFRESH_MS = 14 * 60 * 1000; // 14 minutes
   private qrTimer?: ReturnType<typeof setInterval>;
 
-  // Derived stats
-  get totalVolume(): number {
-    return this.blood_data.reduce((sum, d) => sum + (d.quantity ?? 0), 0);
-  }
-  get averagePerDonation(): number {
-    if (!this.blood_data.length) return 0;
-    return Math.round(this.totalVolume / this.blood_data.length);
-  }
-
   ngOnInit(): void {
+    console.log('[BloodData] Component initialized');
     this.loadDonations();
   }
 
   loadDonations(): void {
     this.isLoading = true;
+    
+    console.log('[BloodData] ========== LOADING DONATIONS ==========');
+    console.log('[BloodData] currentPage:', this.currentPage);
+    console.log('[BloodData] pageSize:', this.pageSize);
 
     this.donationsService
       .getAllDonations({ currentPage: this.currentPage, pageSize: this.pageSize })
       .subscribe({
         next: (res) => {
+          console.log('[BloodData] ===== RESPONSE RECEIVED =====');
+          console.log('[BloodData] Response:', res);
+          console.log('[BloodData] donations.data.length:', res.donations.data?.length);
+          console.log('[BloodData] totalCount:', res.donations.totalCount);
+          console.log('[BloodData] statistics:', res.statistics);
+
           this.blood_data = res.donations.data ?? [];
           this.totalRecords = res.donations.totalCount ?? 0;
           this.totalDonations = res.statistics.totalDonations;
           this.totalQuantity = res.statistics.totalQuantity;
-          this.isLoading = false;
-          ;
           
+          // Calculate average per donation
+          if (this.blood_data.length > 0) {
+            const totalVol = this.blood_data.reduce((sum, d) => sum + (d.quantity ?? 0), 0);
+            this.averagePerDonation = Math.round(totalVol / this.blood_data.length);
+          } else {
+            this.averagePerDonation = 0;
+          }
+          
+          this.isLoading = false;
+          console.log('[BloodData] State updated. Showing', this.blood_data.length, 'donations');
         },
         error: (err) => {
           this.isLoading = false;
+          console.error('[BloodData] Error:', err);
           this.messageService.add({
             severity: 'error',
             summary: 'Error',
@@ -96,9 +108,34 @@ export class BloodData implements OnInit, OnDestroy {
       });
   }
 
+  // ─── Pagination ─────────────────────────────────────────────────────────────
+  onPageChange(event: LazyLoadEvent): void {
+    console.log('[BloodData] ===== PAGE CHANGE EVENT =====');
+    console.log('[BloodData] Raw event:', event);
+    console.log('[BloodData] event.first:', event.first);
+    console.log('[BloodData] event.rows:', event.rows);
+
+    if (!event) {
+      console.warn('[BloodData] Event is null/undefined!');
+      return;
+    }
+
+    const first = event.first ?? 0;
+    const rows = event.rows ?? this.pageSize;
+
+    this.currentPage = Math.floor(first / rows) + 1;
+    this.pageSize = rows;
+
+    console.log('[BloodData] Calculated currentPage:', this.currentPage);
+    console.log('[BloodData] Calculated pageSize:', this.pageSize);
+
+    this.loadDonations();
+  }
+
   // ─── Pick-up QR ───────────────────────────────────────────────────────────────
   /** Opens the dialog, fetches the QR, and starts the 14-min auto-refresh. */
   openQr(donation: Donation): void {
+    console.log('[BloodData] Opening QR dialog for donation:', donation.id);
     this.qrDonationId = donation.id;
     this.qrToken = '';
     this.qrImageBase64 = '';
@@ -110,6 +147,7 @@ export class BloodData implements OnInit, OnDestroy {
   /** Manual "Refresh now" — resets the 14-min cycle too. */
   refreshQr(): void {
     if (this.qrDonationId == null) return;
+    console.log('[BloodData] Manually refreshing QR for donation:', this.qrDonationId);
     this.fetchQr(false);
     this.startQrRefresh();
   }
@@ -117,9 +155,12 @@ export class BloodData implements OnInit, OnDestroy {
   /** GET /api/hospital/donations/{id}/pickup-qr. showLoading=true on first open. */
   private fetchQr(showLoading: boolean): void {
     if (this.qrDonationId == null) return;
+    
     if (showLoading) {
+      console.log('[BloodData] Fetching QR (initial load)...');
       this.qrLoading = true;
     } else {
+      console.log('[BloodData] Refreshing QR (silent)...');
       // Clear the displayed QR so the @else-if condition drops the old element
       // from the DOM — guarantees a fresh remount with the new token.
       this.qrRefreshing = true;
@@ -129,6 +170,7 @@ export class BloodData implements OnInit, OnDestroy {
 
     this.donationsService.getGeneralDonationQr(this.qrDonationId).subscribe({
       next: (res: QrTokenResponse) => {
+        console.log('[BloodData] QR fetched successfully:', res);
         this.qrToken = res.qrToken ?? '';
         this.qrImageBase64 = res.qrImageBase64 ?? '';
         this.qrLoading = false;
@@ -137,6 +179,8 @@ export class BloodData implements OnInit, OnDestroy {
       error: (err) => {
         this.qrLoading = false;
         this.qrRefreshing = false;
+        console.error('[BloodData] QR fetch error:', err);
+        
         // On first-open failure, close & stop. A failed silent refresh keeps the old QR.
         if (showLoading) {
           this.qrDialogVisible = false;
@@ -165,13 +209,8 @@ export class BloodData implements OnInit, OnDestroy {
     }
   }
 
-  onPageChange(event: { first: number; rows: number }): void {
-    this.currentPage = Math.floor(event.first / event.rows) + 1;
-    this.pageSize = event.rows;
-    this.loadDonations();
-  }
-
   ngOnDestroy(): void {
+    console.log('[BloodData] Component destroyed');
     this.stopQrRefresh();
   }
 }
