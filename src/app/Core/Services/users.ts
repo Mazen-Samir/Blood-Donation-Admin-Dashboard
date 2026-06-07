@@ -2,7 +2,12 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
-import { User, UsersResponse, PaginationParams } from '../interface/api-models';
+import { User, UsersResponse } from '../interface/api-models';
+
+export interface PaginationParams {
+  currentPage: number;
+  pageSize: number;
+}
 
 @Injectable({ providedIn: 'root' })
 export class UsersService {
@@ -17,6 +22,8 @@ export class UsersService {
     const params = new HttpParams()
       .set('PageNumber', pagination.currentPage.toString())
       .set('PageSize', pagination.pageSize.toString());
+
+    console.log('[UsersService] Request URL params:', params.toString());
 
     return this.http.get<UsersResponse>(
       `${this.BASE_URL}/api/admin/users`,

@@ -145,9 +145,9 @@ export interface BloodInventoryItem {
 }
 
 // ─── Users ────────────────────────────────────────────────────────────────────
-
+ 
 export type UserStatus = 'ACTIVE' | 'INACTIVE';
-
+ 
 export interface User {
   id: string;
   fullName: string;
@@ -157,7 +157,7 @@ export interface User {
   lastDonation: string;
   status: string;
 }
-
+ 
 export interface UsersResponse {
   currentPage: number;
   pageSize: number;
@@ -167,7 +167,12 @@ export interface UsersResponse {
   hasNext: boolean;
   data: User[];
 }
-
+ 
+export interface PaginationParams {
+  currentPage: number;
+  pageSize: number;
+}
+ 
 // ─── Rewards ──────────────────────────────────────────────────────────────────
 
 export interface Reward {

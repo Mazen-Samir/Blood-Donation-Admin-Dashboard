@@ -5,11 +5,11 @@ import { ButtonModule } from 'primeng/button';
 import { TableModule } from 'primeng/table';
 import { TagModule } from 'primeng/tag';
 import { ToastModule } from 'primeng/toast';
-import { MessageService } from 'primeng/api';
+import { MessageService, LazyLoadEvent } from 'primeng/api';
 import { Subject, debounceTime, distinctUntilChanged, takeUntil } from 'rxjs';
 
 import { UsersService } from '../../../../Core/Services/users';
-import { User } from '../../../../Core/interface/api-models';
+import { User, UsersResponse } from '../../../../Core/interface/api-models';
 
 @Component({
   selector: 'app-users',
@@ -31,13 +31,16 @@ export class Users implements OnInit, OnDestroy {
   // Pagination state
   totalRecords = 0;
   pageSize     = 10;
-  currentPage  = 1;
+  currentPage  = 2;
+  totalPages   = 0;
 
   // ─── Search stream ────────────────────────────────────────────────────────
   private searchSubject = new Subject<string>();
   private destroy$      = new Subject<void>();
 
   ngOnInit(): void {
+    console.log('[Users] Component initialized');
+    
     // Debounce keystrokes by 300ms — avoids filtering on every single character
     this.searchSubject.pipe(
       debounceTime(300),
@@ -49,23 +52,52 @@ export class Users implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
+    console.log('[Users] Component destroyed');
     this.destroy$.next();
     this.destroy$.complete();
   }
 
   loadUsers(): void {
     this.isLoading = true;
+    
+    const paginationParams = { 
+      currentPage: this.currentPage, 
+      pageSize: this.pageSize 
+    };
+    
+    console.log('[Users] ========== LOADING PAGE ==========');
+    console.log('[Users] currentPage:', this.currentPage);
+    console.log('[Users] pageSize:', this.pageSize);
+    console.log('[Users] Calling getAllUsers...');
+
     this.usersService
-      .getAllUsers({ currentPage: this.currentPage, pageSize: this.pageSize })
+      .getAllUsers(paginationParams)
+      .pipe(takeUntil(this.destroy$))
       .subscribe({
-        next: (res) => {
+        next: (res: UsersResponse) => {
+          console.log('[Users] ===== RESPONSE RECEIVED =====');
+          console.log('[Users] Response object:', res);
+          console.log('[Users] data.length:', res.data?.length);
+          console.log('[Users] totalCount:', res.totalCount);
+          console.log('[Users] totalPages:', res.totalPages);
+          console.log('[Users] currentPage (from server):', res.currentPage);
+          console.log('[Users] hasNext:', res.hasNext);
+          console.log('[Users] hasPrevious:', res.hasPrevious);
+
           this.users         = res.data ?? [];
-          this.totalRecords  = res.totalCount ?? this.users.length;
+          this.totalRecords  = res.totalCount ?? 0;
+          this.totalPages    = res.totalPages ?? 1;
           this.filteredUsers = [...this.users];
           this.isLoading     = false;
+
+          console.log('[Users] State updated. Showing', this.users.length, 'of', this.totalRecords, 'users');
         },
         error: (err) => {
           this.isLoading = false;
+          console.error('[Users] ERROR:', err);
+          console.error('[Users] Error status:', err?.status);
+          console.error('[Users] Error message:', err?.error?.message ?? err?.message);
+          
           this.messageService.add({
             severity: 'error',
             summary:  'Error',
@@ -76,17 +108,29 @@ export class Users implements OnInit, OnDestroy {
       });
   }
 
+  // Called when user clicks pagination controls
+  onPageChange(event: any): void {
+    console.log('EVENT FIRED:', event);
+    this.currentPage = Math.floor((event.first ?? 0) / (event.rows ?? 10)) + 1;
+    this.pageSize = event.rows ?? 10;
+    console.log('New page:', this.currentPage);
+    this.loadUsers();
+  }
+
   // Receives the raw input value directly from the template ref — no ngModel needed
   onSearch(value: string): void {
+    console.log('[Users] Search input:', value);
     this.searchQuery = value; // sync for @if(searchQuery) clear button
     this.searchSubject.next(value);
   }
 
   // The actual filter logic — only called after debounce settles
   private applyFilter(query: string): void {
+    console.log('[Users] Applying filter for query:', query);
     const q = query.toLowerCase().trim();
     if (!q) {
       this.filteredUsers = [...this.users];
+      console.log('[Users] Filter cleared, showing all', this.filteredUsers.length, 'users');
       return;
     }
     this.filteredUsers = this.users.filter(
@@ -95,12 +139,7 @@ export class Users implements OnInit, OnDestroy {
         u.bloodType?.toLowerCase().includes(q) ||
         u.phoneNumber?.toLowerCase().includes(q)
     );
-  }
-
-  onPageChange(event: { first: number; rows: number }): void {
-    this.currentPage = Math.floor(event.first / event.rows) + 1;
-    this.pageSize    = event.rows;
-    this.loadUsers();
+    console.log('[Users] Filter applied, showing', this.filteredUsers.length, 'users');
   }
 
   getSeverity(

@@ -120,7 +120,6 @@ export class Scaning implements OnDestroy {
       },
     });
   }
-
   private onResult(res: QrScanResponse): void {
     this.lastScanned   = res.donorName  ?? 'Unknown';
     this.lastBloodType = res.bloodType  ?? '—';

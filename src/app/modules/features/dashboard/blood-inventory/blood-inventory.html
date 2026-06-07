@@ -8,56 +8,7 @@
       <h1 class="page-title">Blood inventory</h1>
       <p class="text-xs text-gray-400 mt-1">Track and manage blood stock levels</p>
     </div>
-    <button class="btn-primary" (click)="showDialog()">
-      <i class="fa-solid fa-plus text-xs"></i>
-      Add Blood Bag
-    </button>
   </div>
-
-  <!-- ADD BAG DIALOG -->
-  <p-dialog
-    header="Add new blood bag"
-    [modal]="true"
-    [(visible)]="visible"
-    [style]="{ width: '22rem' }"
-    [draggable]="false"
-    [resizable]="false"
-  >
-    <div class="flex flex-col gap-4 pt-2">
-      <div class="flex flex-col gap-1.5">
-        <label class="text-[11px] font-medium text-[#888780] uppercase tracking-wider">Blood type</label>
-        <input
-          pInputText
-          placeholder="e.g. A+"
-          class="w-full text-sm py-2.5 px-3 border border-[#ede8e2] rounded-[10px] outline-none focus:border-[#A32D2D]"
-        />
-      </div>
-      <div class="flex flex-col gap-1.5">
-        <label class="text-[11px] font-medium text-[#888780] uppercase tracking-wider">Quantity (units)</label>
-        <input
-          pInputText
-          type="number"
-          placeholder="e.g. 10"
-          class="w-full text-sm py-2.5 px-3 border border-[#ede8e2] rounded-[10px] outline-none focus:border-[#A32D2D]"
-        />
-      </div>
-      <div class="flex justify-end gap-2 pt-2">
-        <button
-          type="button"
-          (click)="visible = false"
-          class="px-4 py-2 text-sm rounded-[9px] border border-[#ede8e2] text-[#888780]
-                 hover:bg-[#f7f5f3] transition-colors cursor-pointer">
-          Cancel
-        </button>
-        <button
-          type="button"
-          (click)="visible = false"
-          class="btn-primary">
-          Save bag
-        </button>
-      </div>
-    </div>
-  </p-dialog>
 
   <!-- SUMMARY CARDS -->
   <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-2.5 mb-3">

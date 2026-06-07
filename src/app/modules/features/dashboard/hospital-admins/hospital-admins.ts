@@ -127,6 +127,7 @@ export class HospitalAdmins implements OnInit, OnDestroy {
       hospitalId: admin.hospitalId,
     };
     this.showDialog = true;
+    console.log('Editing admin:', admin);
   }
 
   saveAdmin(): void {
