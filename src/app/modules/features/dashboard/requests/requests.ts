@@ -7,7 +7,7 @@ import { ToastModule } from 'primeng/toast';
 import { DialogModule } from 'primeng/dialog';
 import { MessageService } from 'primeng/api';
 import { QRCodeComponent } from 'angularx-qrcode';
-
+import { AuthService }      from '../../../../Core/Services/auth';
 import { RequestsService } from '../../../../Core/Services/requests';
 import { BloodRequest, QrTokenResponse } from '../../../../Core/interface/api-models';
 
@@ -30,16 +30,22 @@ import { BloodRequest, QrTokenResponse } from '../../../../Core/interface/api-mo
 export class Requests implements OnInit, OnDestroy {
   private requestsService = inject(RequestsService);
   private messageService = inject(MessageService);
+  private authService = inject(AuthService);
 
   /** Current page only — feeds the lazy p-table. */
   requests: BloodRequest[] = [];
   /** Full set — feeds the summary cards (counts must span ALL requests, not one page). */
   private allRequests: BloodRequest[] = [];
 
+  isAppAdmin = false;
   isLoading = false;
 
   // Pagination state (server-side, for the table)
   totalRecords = 0;
+  totalRequests = 0;
+  openRequests = 0;
+  fulfilledRequests = 0;
+  completedRequests = 0;
   pageSize = 6;
   currentPage = 1;
   first = 0; // bound to p-table [first] so the active page stays highlighted
@@ -49,8 +55,8 @@ export class Requests implements OnInit, OnDestroy {
 
   // ─── Pick-up QR dialog ────────────────────────────────────────────────────────
   qrDialogVisible = false;
-  qrLoading = false;      // first load (full spinner)
-  qrRefreshing = false;   // silent background refresh
+  qrLoading = false; // first load (full spinner)
+  qrRefreshing = false; // silent background refresh
   qrRequestId: number | null = null;
   qrToken = '';
   qrImageBase64 = '';
@@ -61,7 +67,7 @@ export class Requests implements OnInit, OnDestroy {
 
   // ─── Summary counts (calculated client-side over the full set) ──────────────
   get pendingCount(): number {
-    return this.allRequests.filter((r) => this.statusOf(r) === 'pending').length;
+    return this.allRequests.filter((r) => this.statusOf(r) === 'open').length;
   }
   get emergencyCount(): number {
     return this.allRequests.filter((r) => {
@@ -86,7 +92,8 @@ export class Requests implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.loadRequests(); // table page
-    this.loadStats();    // summary cards
+    this.loadStats(); // summary cards
+    this.isAppAdmin = this.authService.isAppAdmin();
   }
 
   // ─── Table page (lazy) ──────────────────────────────────────────────────────
@@ -100,6 +107,10 @@ export class Requests implements OnInit, OnDestroy {
           this.requests = data;
           this.totalRecords = total;
           this.isLoading = false;
+
+          this.openRequests = res.statistics.openRequests ?? 0;
+          this.fulfilledRequests = res.statistics.fulfilledRequests ?? 0;
+          this.completedRequests = res.statistics.completedRequests ?? 0;
         },
         error: (err) => {
           this.isLoading = false;

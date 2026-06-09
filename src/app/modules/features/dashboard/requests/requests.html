@@ -30,7 +30,7 @@
           <i class="fa-solid fa-clock" style="color: #b26a00"></i>
         </div>
       </div>
-      <p class="stat-num">{{ pendingCount }}</p>
+      <p class="stat-num">{{ openRequests }}</p>
       <p class="stat-label">Pending</p>
       <div class="stat-bar">
         <div class="stat-bar-fill" style="width: 45%; background: #c98a1e"></div>
@@ -56,7 +56,7 @@
           <i class="fa-solid fa-circle-check" style="color: #3b6d11"></i>
         </div>
       </div>
-      <p class="stat-num">{{ completedCount }}</p>
+      <p class="stat-num">{{ completedRequests }}</p>
       <p class="stat-label">Completed / Approved</p>
       <div class="stat-bar">
         <div class="stat-bar-fill" style="width: 70%; background: #639922"></div>
@@ -86,7 +86,11 @@
           <th>QUANTITY</th>
           <th>REQUEST DATE</th>
           <th>STATUS</th>
-          <th class="text-center!">QR</th>
+          @if (!isAppAdmin) 
+          {
+            <th class="text-center!">QR</th>
+          }
+        
         </tr>
       </ng-template>
       <ng-template #body let-request>
@@ -103,6 +107,9 @@
               {{ request.status }}
             </span>
           </td>
+          @if (!isAppAdmin) 
+          {
+
           @if (request.status === 'Fulfilled') {
             <td class="text-center!">
               <button
@@ -126,6 +133,8 @@
               <i class="fa-solid fa-qrcode text-sm"></i>
             </button></td>
           }
+        }
+
         </tr>
       </ng-template>
       <ng-template #emptymessage>

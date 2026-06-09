@@ -119,6 +119,13 @@ export interface BloodRequest {
   hospitalName?: string;
 }
 
+export interface RequestsStatistics {
+  totalRequests: number;
+  openRequests: number;
+  fulfilledRequests: number;
+  completedRequests: number;
+}
+
 // ─── Donation ─────────────────────────────────────────────────────────────────
 
 export interface Donation {

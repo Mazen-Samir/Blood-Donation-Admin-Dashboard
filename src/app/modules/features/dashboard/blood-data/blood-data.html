@@ -31,9 +31,9 @@
         </div>
       </div>
       <p class="stat-num">
-        {{ totalQuantity | number }} <span class="text-sm text-gray-400 font-normal">ml</span>
+        {{ totalQuantity | number }} <span class="text-sm text-gray-400 font-normal">Bag</span>
       </p>
-      <p class="stat-label">Total volume</p>
+      <p class="stat-label">Total bags</p>
       <div class="stat-bar">
         <div class="stat-bar-fill" style="width: 65%; background: #378add"></div>
       </div>
@@ -76,10 +76,12 @@
           <th>Blood type</th>
           <th>Status</th>
           <th>Type</th>
-          <th class="text-center!">QR</th>
+          @if (!isAppAdmin) {
+            <th class="text-center!">QR</th>
+          }
         </tr>
       </ng-template>
-      
+
       <ng-template #body let-blood>
         <tr class="cursor-pointer">
           <td class="font-medium text-gray-900!">D-{{ blood.id }}</td>
@@ -108,9 +110,7 @@
 
           <td class="text-center!">
             @if (blood.bloodRequestId == null) {
-              <span class="bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-xs"
-                >General</span
-              >
+              <span class="bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-xs">General</span>
             } @else {
               <span class="bg-purple-100 text-purple-800 px-2 py-1 rounded-full text-xs"
                 >Requested</span
@@ -118,44 +118,42 @@
             }
           </td>
 
-          <td class="text-center!">
-            @if (blood.bloodRequestId == null) {
-              @if (blood.status === 'Pending' || blood.status === 'Withdrawn') 
-              {
+          @if (!isAppAdmin) {
+            <td class="text-center!">
+              @if (blood.bloodRequestId == null) {
+                @if (blood.status === 'Pending' || blood.status === 'Withdrawn') {
+                  <button
+                    type="button"
+                    disabled
+                    (click)="openQr(blood)"
+                    title="QR has been withdrawn or still Pending donations"
+                    class="w-8 h-8 cursor-not-allowed rounded-md inline-flex items-center justify-center border border-[#ede8e2] text-[#A32D2D] hover:bg-[#FCEBEB] transition-colors disabled:opacity-50"
+                  >
+                    <i class="fa-solid fa-qrcode text-sm"></i>
+                  </button>
+                } @else {
+                  <button
+                    type="button"
+                    (click)="openQr(blood)"
+                    title="Show pick-up QR"
+                    class="w-8 h-8 rounded-md inline-flex items-center justify-center border border-[#ede8e2] text-[#A32D2D] hover:bg-[#FCEBEB] transition-colors cursor-pointer"
+                  >
+                    <i class="fa-solid fa-qrcode text-sm"></i>
+                  </button>
+                }
+              } @else {
                 <button
-                type="button"
-                disabled
-                (click)="openQr(blood)"
-                title="QR has been withdrawn or still Pending donations"
-                class="w-8 h-8 cursor-not-allowed rounded-md inline-flex items-center justify-center border border-[#ede8e2] text-[#A32D2D] hover:bg-[#FCEBEB] transition-colors disabled:opacity-50"
-              >
-                <i class="fa-solid fa-qrcode text-sm"></i>
-              </button>
+                  type="button"
+                  disabled
+                  (click)="openQr(blood)"
+                  title="QR Is only available for General donations"
+                  class="w-8 h-8 cursor-not-allowed rounded-md inline-flex items-center justify-center border border-[#ede8e2] text-[#A32D2D] hover:bg-[#FCEBEB] transition-colors disabled:opacity-50"
+                >
+                  <i class="fa-solid fa-qrcode text-sm"></i>
+                </button>
               }
-              @else 
-              {
-                <button
-                type="button"
-                (click)="openQr(blood)"
-                title="Show pick-up QR"
-                class="w-8 h-8 rounded-md inline-flex items-center justify-center border border-[#ede8e2] text-[#A32D2D] hover:bg-[#FCEBEB] transition-colors cursor-pointer"
-              >
-                <i class="fa-solid fa-qrcode text-sm"></i>
-              </button>
-              }
-              
-            } @else {
-              <button
-              type="button"
-              disabled
-              (click)="openQr(blood)"
-              title="QR Is only available for General donations"
-              class="w-8 h-8 cursor-not-allowed rounded-md inline-flex items-center justify-center border border-[#ede8e2] text-[#A32D2D] hover:bg-[#FCEBEB] transition-colors disabled:opacity-50"
-            >
-              <i class="fa-solid fa-qrcode text-sm"></i>
-            </button>
-            }
-          </td>
+            </td>
+          }
         </tr>
       </ng-template>
 

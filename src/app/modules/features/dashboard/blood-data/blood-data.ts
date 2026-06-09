@@ -1,3 +1,4 @@
+import { AuthService } from './../../../../Core/Services/auth';
 import { Component, OnInit, OnDestroy, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -32,10 +33,11 @@ import { Donation, QrTokenResponse } from '../../../../Core/interface/api-models
 export class BloodData implements OnInit, OnDestroy {
   private donationsService = inject(DonationsService);
   private messageService = inject(MessageService);
-
+  private authService = inject(AuthService);
   blood_data: Donation[] = [];
   isGeneralDonation = false;
   isLoading = false;
+  isAppAdmin = false;
 
   // Pagination
   totalRecords = 0;
@@ -60,6 +62,8 @@ export class BloodData implements OnInit, OnDestroy {
   ngOnInit(): void {
     console.log('[BloodData] Component initialized');
     this.loadDonations();
+    this.isAppAdmin = this.authService.isAppAdmin();
+
   }
 
   loadDonations(): void {
