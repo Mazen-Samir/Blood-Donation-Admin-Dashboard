@@ -137,7 +137,7 @@ export class Scaning implements OnDestroy {
       next:  (res) => this.onResult(res),
       error: (err) => {
         this.errorMsg = err?.error?.message ?? 'Scan failed. Please try again.';
-        this.messageService.add({ severity: 'error', summary: 'Error Occurred', detail:'failed scan QR please try again', life: 4000 });
+        this.messageService.add({ severity: 'error', summary: 'Error Occurred', detail: this.errorMsg ?? 'failed scan QR please try again', life: 4000 });
         this.resetAfter();
       },
     });
@@ -164,7 +164,7 @@ export class Scaning implements OnDestroy {
       this.lastStatus      = 'Rejected';
       this.lastStatusClass = 's-emergency';
       this.errorMsg        = res.message ?? 'Scan failed.';
-      this.messageService.add({ severity: 'error', summary: 'Error', detail:'failed scan QR please try again', life: 4000 });
+      this.messageService.add({ severity: 'error', summary: 'Error', detail: this.errorMsg ?? 'failed scan QR please try again', life: 4000 });
       
     }
   
