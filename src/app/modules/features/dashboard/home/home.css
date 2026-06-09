@@ -3,6 +3,9 @@
 .db-wrap {
   font-family: 'DM Sans', sans-serif;
   background: #f4f1ed;
+  min-height: 100%;
+  display: flex;
+  flex-direction: column;
 }
 
 /* Stat cards */

@@ -48,7 +48,7 @@
       <p class="stat-num text-[26px] text-gray-900">
         <ng-container *ngIf="!isLoadingStats; else statSkeleton">{{ totalBags | number }}</ng-container>
       </p>
-      <p class="text-[11px] text-gray-400 uppercase tracking-wider mt-0.5">Blood bags</p>
+      <p class="text-[11px] text-gray-400 uppercase tracking-wider mt-0.5">Total donations</p>
       <div class="stat-bar"><div class="stat-bar-fill bg-[#639922]" style="width: 55%"></div></div>
     </div>
 
@@ -72,10 +72,10 @@
   </ng-template>
 
   <!-- LOWER ROW -->
-  <div class="grid grid-cols-5 gap-2.5">
+  <div class="grid grid-cols-5 gap-2.5 flex-1">
 
-    <!-- AI panel — unchanged for both roles -->
-    <div class="panel-card col-span-2">
+    <!-- AI panel — HospitalAdmin only -->
+    <div class="panel-card col-span-2 h-full" *ngIf="auth.isHospitalAdmin()">
       <div class="flex items-center justify-between mb-4">
         <span class="text-sm font-medium text-gray-900">
           <span class="live-dot"></span>AI blood demand
@@ -142,8 +142,77 @@
       </a>
     </div>
 
+    <!-- Rewards overview — AppAdmin only -->
+    <div class="panel-card col-span-2 h-full" *ngIf="auth.isAppAdmin()">
+      <div class="flex items-center justify-between mb-4">
+        <span class="text-sm font-medium text-gray-900">
+          <i class="fa-solid fa-gift text-[#534AB7] mr-1.5"></i>Rewards overview
+        </span>
+        <span class="text-[11px] font-medium px-2 py-1 rounded-md bg-[#EEEDFE] text-[#534AB7]">Rewards</span>
+      </div>
+
+      @if (isLoadingRewards) {
+        <div class="flex justify-between py-2.5 border-b border-gray-100">
+          <div class="h-3 w-20 bg-gray-100 rounded animate-pulse"></div>
+          <div class="h-3 w-14 bg-gray-200 rounded animate-pulse"></div>
+        </div>
+        <div class="flex justify-between py-2.5 border-b border-gray-100">
+          <div class="h-3 w-28 bg-gray-100 rounded animate-pulse"></div>
+          <div class="h-3 w-10 bg-gray-200 rounded animate-pulse"></div>
+        </div>
+        <div class="flex justify-between py-2.5 border-b border-gray-100">
+          <div class="h-3 w-24 bg-gray-100 rounded animate-pulse"></div>
+          <div class="h-3 w-10 bg-gray-200 rounded animate-pulse"></div>
+        </div>
+        <div class="flex justify-between py-2.5">
+          <div class="h-3 w-20 bg-gray-100 rounded animate-pulse"></div>
+          <div class="h-3 w-10 bg-gray-200 rounded animate-pulse"></div>
+        </div>
+        <div class="mt-3">
+          <div class="flex justify-between mb-1">
+            <div class="h-3 w-24 bg-gray-100 rounded animate-pulse"></div>
+            <div class="h-3 w-8 bg-gray-200 rounded animate-pulse"></div>
+          </div>
+          <div class="stat-bar">
+            <div class="h-full bg-gray-200 rounded-full animate-pulse" style="width:100%"></div>
+          </div>
+        </div>
+      } @else {
+        <div class="flex justify-between py-2.5 border-b border-gray-100">
+          <span class="text-xs text-gray-400">Total rewards</span>
+          <span class="text-xs font-medium text-gray-800">{{ totalRewards }}</span>
+        </div>
+        <div class="flex justify-between py-2.5 border-b border-gray-100">
+          <span class="text-xs text-gray-400">Pending redemptions</span>
+          <span class="text-xs font-medium text-gray-800">{{ pendingRedemptions }}</span>
+        </div>
+        <div class="flex justify-between py-2.5 border-b border-gray-100">
+          <span class="text-xs text-gray-400">Min points required</span>
+          <span class="text-xs font-medium text-gray-800">{{ minPoints }}</span>
+        </div>
+        <div class="flex justify-between py-2.5">
+          <span class="text-xs text-gray-400">Max points required</span>
+          <span class="text-xs font-medium text-gray-800">{{ maxPoints }}</span>
+        </div>
+        <div class="mt-3">
+          <div class="flex justify-between mb-1">
+            <span class="text-[11px] text-gray-400">Rewards issued</span>
+            <span class="text-[11px] font-medium text-[#534AB7]">{{ totalRewards }} total</span>
+          </div>
+          <div class="stat-bar">
+            <div class="stat-bar-fill bg-[#534AB7]" style="width:100%"></div>
+          </div>
+        </div>
+      }
+
+      <a routerLink="../rewards"
+         class="inline-flex items-center gap-1 text-xs font-medium text-[#534AB7] hover:gap-2 transition-all mt-4 cursor-pointer">
+        Manage rewards <i class="fa-solid fa-arrow-right text-[10px]"></i>
+      </a>
+    </div>
+
     <!-- Quick actions — unchanged for both roles -->
-    <div class="panel-card col-span-3">
+    <div class="panel-card col-span-3 h-full">
       <div class="flex items-center justify-between mb-4">
         <span class="text-sm font-medium text-gray-900">Quick actions</span>
       </div>
@@ -237,13 +306,13 @@
   </section>
 
   <!-- ═══════════════════════════════════════════════════════════════════════════
-       APP ADMIN — Quick manage rewards
+       APP ADMIN — Recent rewards list
   ════════════════════════════════════════════════════════════════════════════ -->
-  <section *ngIf="auth.isAppAdmin()" class="mt-3">
+  <section *ngIf="auth.isAppAdmin()" class="mt-3 flex-1">
     <div class="flex items-center justify-between mb-2.5">
       <h2 class="text-sm font-medium text-gray-900 flex items-center gap-1.5">
         <i class="fa-solid fa-gift text-[#534AB7] text-xs"></i>
-        Quick manage rewards
+        Recent rewards
       </h2>
       <a routerLink="../rewards"
          class="inline-flex items-center gap-1 text-xs font-medium text-[#534AB7] hover:gap-2 transition-all cursor-pointer">
@@ -255,89 +324,41 @@
     <div *ngIf="isLoadingRewards" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
       <div *ngFor="let i of [1,2,3,4]"
            class="bg-white rounded-xl border border-[#ede8e2] p-4 animate-pulse">
-        <div class="h-8 bg-gray-200 rounded mb-3 w-8"></div>
-        <div class="h-4 bg-gray-200 rounded mb-2 w-24"></div>
-        <div class="h-3 bg-gray-200 rounded w-16"></div>
+        <div class="flex items-center gap-2.5 mb-3">
+          <div class="w-7 h-7 bg-gray-200 rounded-lg flex-shrink-0"></div>
+          <div class="h-3 bg-gray-200 rounded w-24"></div>
+        </div>
+        <div class="h-3 bg-gray-100 rounded w-32 mb-2"></div>
+        <div class="h-5 bg-gray-200 rounded w-16 mt-3"></div>
       </div>
     </div>
 
-    <div *ngIf="!isLoadingRewards" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
-
-      <!-- Total rewards issued -->
-      <div class="bt-card bg-white rounded-xl border border-[#ede8e2] p-4 hover:-translate-y-1 transition-transform cursor-default">
-        <div class="w-9 h-9 rounded-[9px] bg-[#EEEDFE] flex items-center justify-center mb-3">
-          <i class="fa-solid fa-gift text-[#534AB7]"></i>
-        </div>
-        <p class="stat-num text-[22px] text-gray-900">{{ totalRewards }}</p>
-        <p class="text-[11px] text-gray-400 uppercase tracking-wider mt-0.5">Total rewards</p>
-        <div class="stat-bar">
-          <div class="stat-bar-fill bg-[#534AB7]" style="width: 100%"></div>
-        </div>
-      </div>
-
-      <!-- Pending redemptions -->
-      <div class="bt-card bg-white rounded-xl border border-[#ede8e2] p-4 hover:-translate-y-1 transition-transform cursor-default">
-        <div class="w-9 h-9 rounded-[9px] bg-[#faeeda] flex items-center justify-center mb-3">
-          <i class="fa-solid fa-clock text-[#633806]"></i>
-        </div>
-        <p class="stat-num text-[22px] text-gray-900">{{ pendingRedemptions }}</p>
-        <p class="text-[11px] text-gray-400 uppercase tracking-wider mt-0.5">Pending redemptions</p>
-        <div class="stat-bar">
-          <div class="stat-bar-fill bg-[#e8a04a]" style="width: 60%"></div>
-        </div>
-      </div>
-
-      <!-- Points range -->
-      <div class="bt-card bg-white rounded-xl border border-[#ede8e2] p-4 hover:-translate-y-1 transition-transform cursor-default">
-        <div class="w-9 h-9 rounded-[9px] bg-[#EAF3DE] flex items-center justify-center mb-3">
-          <i class="fa-solid fa-star text-[#3B6D11]"></i>
-        </div>
-        <p class="stat-num text-[22px] text-gray-900">{{ minPoints }}</p>
-        <p class="text-[11px] text-gray-400 uppercase tracking-wider mt-0.5">Min points required</p>
-        <div class="stat-bar">
-          <div class="stat-bar-fill bg-[#639922]" style="width: 35%"></div>
-        </div>
-      </div>
-
-      <!-- Navigate to rewards -->
-      <a routerLink="../rewards"
-         class="bt-card qa-item qa-purple bg-white rounded-xl border border-[#ede8e2] p-4 flex flex-col justify-between hover:-translate-y-1 transition-transform cursor-pointer no-underline">
-        <div class="w-9 h-9 rounded-[9px] bg-[#EEEDFE] flex items-center justify-center mb-3">
-          <i class="fa-solid fa-arrow-up-right-from-square text-[#534AB7]"></i>
-        </div>
+    <div *ngIf="!isLoadingRewards" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-2">
+      <div *ngFor="let r of rewards"
+           class="bg-white rounded-xl border border-[#ede8e2] p-4 hover:-translate-y-1 transition-transform cursor-default flex flex-col justify-between">
         <div>
-          <p class="text-[13px] font-medium text-gray-900">Manage rewards</p>
-          <p class="text-[11px] text-gray-400 mt-0.5">Create, edit &amp; delete</p>
-        </div>
-        <span class="inline-flex items-center gap-1 text-xs font-medium text-[#534AB7] mt-3">
-          Go to rewards <i class="fa-solid fa-arrow-right text-[10px]"></i>
-        </span>
-      </a>
-
-    </div>
-
-    <!-- Reward list preview — top 4 -->
-    <div *ngIf="!isLoadingRewards && rewards.length" class="mt-2 panel-card">
-      <p class="text-xs font-medium text-gray-500 uppercase tracking-wider mb-3">Recent rewards</p>
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
-        <div *ngFor="let r of rewards.slice(0, 4)"
-             class="flex items-center justify-between py-2 px-3 rounded-lg border border-[#ede8e2] bg-[#faf8f6]">
-          <div class="flex items-center gap-2.5">
-            <div class="w-7 h-7 rounded-[7px] bg-[#EEEDFE] flex items-center justify-center flex-shrink-0">
+          <div class="flex items-center gap-2.5 mb-2">
+            <div class="w-8 h-8 rounded-[8px] bg-[#EEEDFE] flex items-center justify-center flex-shrink-0">
               <i class="fa-solid fa-gift text-[#534AB7] text-[11px]"></i>
             </div>
-            <div>
-              <p class="text-[13px] font-medium text-gray-900 leading-tight">{{ r.title }}</p>
-              <p class="text-[11px] text-gray-400 leading-tight">{{ r.description }}</p>
-            </div>
+            <p class="text-[13px] font-medium text-gray-900 leading-tight">{{ r.title }}</p>
           </div>
-          <span class="text-[11px] font-medium px-2 py-1 rounded-md bg-[#EEEDFE] text-[#534AB7] whitespace-nowrap ml-2">
-            {{ r.pointsRequired }} pts
-          </span>
+          <p class="text-[11px] text-gray-400 leading-snug">{{ r.description }}</p>
         </div>
+        <span class="inline-block mt-3 text-[11px] font-medium px-2 py-1 rounded-md bg-[#EEEDFE] text-[#534AB7] w-fit">
+          {{ r.pointsRequired }} pts
+        </span>
       </div>
-    </div>
 
+      <a *ngIf="!rewards.length" routerLink="../rewards"
+         class="bg-white rounded-xl border border-dashed border-[#c4b9f7] p-4 flex flex-col items-center justify-center gap-2 text-center hover:-translate-y-1 transition-transform cursor-pointer col-span-full">
+        <div class="w-9 h-9 rounded-[9px] bg-[#EEEDFE] flex items-center justify-center">
+          <i class="fa-solid fa-plus text-[#534AB7]"></i>
+        </div>
+        <p class="text-[13px] font-medium text-gray-900">No rewards yet</p>
+        <p class="text-[11px] text-gray-400">Create your first reward</p>
+      </a>
+    </div>
   </section>
 
 </section>
