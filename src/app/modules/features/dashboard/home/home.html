@@ -48,7 +48,7 @@
       <p class="stat-num text-[26px] text-gray-900">
         <ng-container *ngIf="!isLoadingStats; else statSkeleton">{{ totalBags | number }}</ng-container>
       </p>
-      <p class="text-[11px] text-gray-400 uppercase tracking-wider mt-0.5">Blood bags</p>
+      <p class="text-[11px] text-gray-400 uppercase tracking-wider mt-0.5">Total Donations</p>
       <div class="stat-bar"><div class="stat-bar-fill bg-[#639922]" style="width: 55%"></div></div>
     </div>
 
@@ -117,7 +117,18 @@
         <span class="text-sm font-medium text-gray-900">Quick actions</span>
       </div>
       <div class="grid grid-cols-2 gap-2">
-        <a routerLink="../scanning" class="qa-item qa-red flex items-center gap-3 p-3 cursor-pointer">
+        
+        <a *ngIf="auth.isAppAdmin()" routerLink="../scanning" class="qa-item qa-red flex items-center gap-3 p-3 cursor-pointer">
+          <div class="w-14 h-14 rounded-[9px] bg-[#FCEBEB] flex items-center justify-center flex-shrink-0">
+            <i class="fa-solid fa-hospital icon"></i>
+          </div>
+          <div>
+            <p class="text-[13px] font-medium text-gray-900">Hospitals</p>
+            <p class="text-[11px] text-gray-400">Manage hospital information</p>
+          </div>
+        </a>
+        
+        <a *ngIf="auth.isHospitalAdmin()" routerLink="../scanning" class="qa-item qa-red flex items-center gap-3 p-3 cursor-pointer">
           <div class="w-14 h-14 rounded-[9px] bg-[#FCEBEB] flex items-center justify-center flex-shrink-0">
             <i class="fa-solid fa-qrcode text-[#A32D2D]"></i>
           </div>
@@ -126,6 +137,8 @@
             <p class="text-[11px] text-gray-400">Process donation</p>
           </div>
         </a>
+
+        
         <a routerLink="../users" class="qa-item qa-blue flex items-center gap-3 p-3 cursor-pointer">
           <div class="w-14 h-14 rounded-[9px] bg-[#E6F1FB] flex items-center justify-center flex-shrink-0">
             <i class="fa-solid fa-users text-[#185FA5]"></i>
@@ -144,7 +157,7 @@
             <p class="text-[11px] text-gray-400">View &amp; approve</p>
           </div>
         </a>
-        <a routerLink="../blood-inventory" class="qa-item qa-green flex items-center gap-3 p-3 cursor-pointer">
+        <a *ngIf="auth.isHospitalAdmin()" routerLink="../blood-inventory" class="qa-item qa-green flex items-center gap-3 p-3 cursor-pointer">
           <div class="w-14 h-14 rounded-[9px] bg-[#EAF3DE] flex items-center justify-center flex-shrink-0">
             <i class="fa-solid fa-warehouse text-[#3B6D11]"></i>
           </div>
@@ -153,9 +166,17 @@
             <p class="text-[11px] text-gray-400">Manage stock</p>
           </div>
         </a>
+        <a *ngIf="auth.isAppAdmin()" routerLink="../blood-inventory" class="qa-item qa-green flex items-center gap-3 p-3 cursor-pointer">
+          <div class="w-14 h-14 rounded-[9px] bg-[#EAF3DE] flex items-center justify-center flex-shrink-0">
+            <i class="fa-solid fa-user-doctor icon"></i>
+          </div>
+          <div>
+            <p class="text-[13px] font-medium text-gray-900">App Admin</p>
+            <p class="text-[11px] text-gray-400">Manage hospital admin accounts</p>
+          </div>
+        </a>
       </div>
     </div>
-
   </div>
 
   <!-- ═══════════════════════════════════════════════════════════════════════════
